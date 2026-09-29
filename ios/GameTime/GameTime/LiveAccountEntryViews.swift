@@ -1,112 +1,132 @@
 import SwiftUI
 
-/// Account entry uses the approved light system while retaining the native
-/// Apple authorization control and AppModel's account lifecycle.
+/// Floodlight round 12: the wordmark and one line on the sky or beams, then
+/// Apple's own button and the policy links on the ground. It follows the
+/// phone's appearance. Every failure is one quiet sentence above the button,
+/// which is also how you try again.
 struct LiveSignInView: View {
     @Environment(AppModel.self) private var model
     @Environment(\.demoMode) private var demoMode
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var showingAccountDeletionReceipt = false
 
+    static let valueLine = "Private challenges with friends. Proof from Apple Health."
+    static let failedMessage = "Couldn’t sign in. Try again."
+
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 28) {
-                (dynamicTypeSize.isAccessibilitySize
-                          ? AnyLayout(VStackLayout(alignment: .leading, spacing: 8))
-                          : AnyLayout(HStackLayout())) {
-                    Text(GameTimePublicIdentity.name)
-                        .liveFont(28, weight: .bold).tracking(-1.1)
-                    if !dynamicTypeSize.isAccessibilitySize { Spacer() }
-                    Label("Private account", systemImage: "lock")
-                        .liveFont(11, weight: .medium).foregroundStyle(SignalTheme.textSecondary)
-                }.padding(.top, 22)
-
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Sign in").liveFont(32, weight: .bold).tracking(-1.1)
-                    Text("Your challenges and your record, in one place.")
-                        .liveFont(15).foregroundStyle(SignalTheme.textSecondary)
-                }.padding(.top, 14)
-
+        GeometryReader { proxy in
+            let top = proxy.safeAreaInsets.top
+            ScrollView {
                 VStack(spacing: 0) {
-                    introduction("Your goal", value: "Choose the activity, goal and dates.", symbol: "flag")
-                    Divider().overlay(SignalTheme.divider.opacity(0.6)).padding(.leading, 62)
-                    introduction("Your agreement", value: "Review the full rules before you start.", symbol: "checkmark.shield")
-                    Divider().overlay(SignalTheme.divider.opacity(0.6)).padding(.leading, 62)
-                    introduction("Your record", value: "Your wider activity history stays private.", symbol: "lock")
-                }.modifier(LiveCardModifier(radius: 20, material: true))
-
-                VStack(spacing: 14) {
-                    #if DEBUG
-                    if ChallengeAuthenticatedAppLaunch.enabled {
-                        Button("Sign in with local test account") {
-                            Task { await model.signInWithApple(ChallengeAuthenticatedAppLaunch.identity) }
-                        }.buttonStyle(LivePrimaryButtonStyle())
-                            .disabled(model.isMutating).accessibilityIdentifier("auth.local-substitute")
-                    } else {
-                        NativeAppleSignInButton().disabled(model.isMutating)
-                    }
-                    #else
-                    NativeAppleSignInButton().disabled(model.isMutating)
-                    #endif
-
-                    if model.isMutating {
-                        HStack(spacing: 8) {
-                            ProgressView().tint(SignalTheme.accent)
-                            Text("Signing in…").liveFont(13).foregroundStyle(SignalTheme.textSecondary)
-                        }.accessibilityIdentifier("auth.sign-in.status")
-                    }
-                    if demoMode.isAvailable, !demoMode.isActive {
-                        Button("Try demo mode", action: demoMode.enter)
-                            .liveFont(15, weight: .semibold).foregroundStyle(SignalTheme.accent)
-                            .frame(maxWidth: .infinity, minHeight: 48)
-                            .background(SignalTheme.soft, in: RoundedRectangle(cornerRadius: 16))
-                            .accessibilityIdentifier("demo.enter")
-                    }
+                    hero
+                        .padding(.horizontal, 28).padding(.top, top + 24).padding(.bottom, 76)
+                        .frame(maxWidth: .infinity, minHeight: (proxy.size.height + top) * 0.69, alignment: .bottom)
+                        .background(alignment: .top) { FloodlightSky() }
+                    Spacer(minLength: 0)
+                    foot.padding(.horizontal, 18).padding(.bottom, 12)
                 }
-
-                if let notice = model.accountDeletionNotice {
-                    Label(notice, systemImage: "checkmark.circle")
-                        .liveFont(14, weight: .medium).foregroundStyle(SignalTheme.accent)
-                        .padding(16).frame(maxWidth: .infinity, alignment: .leading)
-                        .modifier(LiveCardModifier(radius: 18, material: true))
-                        .accessibilityIdentifier("account-deletion.success")
-                }
-                if model.accountDeletionReceipt != nil {
-                    Button("Check account deletion") { showingAccountDeletionReceipt = true }
-                        .liveFont(14, weight: .semibold).frame(minHeight: 44)
-                        .foregroundStyle(SignalTheme.accent).accessibilityIdentifier("account-deletion.receipt")
-                }
-
-                VStack(alignment: .leading, spacing: 16) {
-                    Text("Signing in creates your private account. Apple only shares your name the first time, and you can change it on the next screen.")
-                        .liveFont(12).lineSpacing(3).foregroundStyle(SignalTheme.textSecondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                    PublicSupportLinksView(privacyURL: model.configuration.privacyPolicyURL,
-                        betaTermsURL: model.configuration.betaTermsURL,
-                        supportMailtoURL: model.configuration.supportMailtoURL)
-                }
-            }.padding(.horizontal, SignalTheme.contentInset).padding(.vertical, 24)
-        }.background(SignalTheme.canvas).foregroundStyle(SignalTheme.textPrimary)
-            .sheet(isPresented: $showingAccountDeletionReceipt) { LiveAccountDeletionReceiptView() }
-            .onChange(of: model.isMutating) { _, signingIn in
-                if signingIn { SignalAccessibility.announce("Signing in…") }
+                .frame(minHeight: proxy.size.height + top + proxy.safeAreaInsets.bottom)
             }
-            .onChange(of: model.presentedError) { _, message in
-                if let message { SignalAccessibility.announce(message) }
-            }
+            .scrollIndicators(.hidden)
+            .scrollBounceBehavior(.basedOnSize)
+            .ignoresSafeArea(.container, edges: .top)
+        }
+        .background(Floodlight.ground.ignoresSafeArea())
+        .foregroundStyle(Floodlight.ink)
+        .sheet(isPresented: $showingAccountDeletionReceipt) { LiveAccountDeletionReceiptView() }
+        .onChange(of: model.isMutating) { _, signingIn in
+            if signingIn { SignalAccessibility.announce("Signing in…") }
+        }
+        .onChange(of: model.signInFailure) { _, failure in
+            if failure != nil { SignalAccessibility.announce(Self.failedMessage) }
+        }
+        #if DEBUG
+        .task { await FixtureSignInAttempt.run(model) }
+        #endif
     }
 
-    private func introduction(_ title: String, value: String, symbol: String) -> some View {
-        HStack(spacing: 12) {
-            Image(systemName: symbol).font(.system(size: 20, weight: .regular))
-                .foregroundStyle(SignalTheme.accent).frame(width: 34, height: 34)
-                .background(SignalTheme.accent.opacity(0.035), in: RoundedRectangle(cornerRadius: 12))
-            VStack(alignment: .leading, spacing: 5) {
-                Text(title).liveFont(14, weight: .semibold)
-                Text(value).liveFont(12).foregroundStyle(SignalTheme.textSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }.frame(maxWidth: .infinity, alignment: .leading)
-        }.padding(16)
+    private var hero: some View {
+        VStack(spacing: 0) {
+            FloodlightBrandMark().fill(Floodlight.brand).frame(width: 46, height: 46).accessibilityHidden(true)
+            FloodlightTitle(GameTimePublicIdentity.name, size: 76, maxScale: 1.3, spacing: -0.015)
+                .foregroundStyle(Floodlight.ink).lineLimit(1).minimumScaleFactor(0.6)
+                .accessibilityAddTraits(.isHeader).padding(.top, 14)
+            Text(Self.valueLine).floodlightFont(17, weight: .medium).lineSpacing(3)
+                .foregroundStyle(Floodlight.heroMuted).multilineTextAlignment(.center)
+                .frame(maxWidth: 270).fixedSize(horizontal: false, vertical: true).padding(.top, 14)
+        }
+    }
+
+    private var foot: some View {
+        VStack(spacing: 12) {
+            if model.signInFailure != nil {
+                HStack(spacing: 12) {
+                    Image(systemName: "exclamationmark.circle").font(.system(size: 15, weight: .medium))
+                        .foregroundStyle(Floodlight.accent).frame(width: 30, height: 30)
+                        .background(Circle().fill(Floodlight.well)).accessibilityHidden(true)
+                    Text(Self.failedMessage).floodlightFont(15, weight: .semibold)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Spacer(minLength: 0)
+                }
+                .padding(.horizontal, 14).padding(.vertical, 12).floodlightCard(radius: 16)
+                .accessibilityElement(children: .combine).accessibilityIdentifier("auth.sign-in.failed")
+            }
+            #if DEBUG
+            if ChallengeAuthenticatedAppLaunch.enabled {
+                Button("Sign in with local test account") {
+                    Task { await model.signInWithApple(ChallengeAuthenticatedAppLaunch.identity) }
+                }.buttonStyle(FloodlightPrimaryButtonStyle())
+                    .disabled(model.isMutating).accessibilityIdentifier("auth.local-substitute")
+            } else {
+                appleButton
+            }
+            #else
+            appleButton
+            #endif
+            if model.isMutating {
+                HStack(spacing: 8) {
+                    ProgressView().tint(Floodlight.accent)
+                    Text("Signing in…").floodlightFont(14, weight: .medium).foregroundStyle(Floodlight.muted)
+                }.frame(minHeight: 24).accessibilityElement(children: .combine)
+                    .accessibilityIdentifier("auth.sign-in.status")
+            }
+            if demoMode.isAvailable, !demoMode.isActive {
+                Button("Try demo mode", action: demoMode.enter).buttonStyle(FloodlightCalmButtonStyle(height: 48))
+                    .accessibilityIdentifier("demo.enter")
+            }
+            if let notice = model.accountDeletionNotice {
+                Label(notice, systemImage: "checkmark.circle")
+                    .floodlightFont(14, weight: .medium).foregroundStyle(Floodlight.accent)
+                    .padding(16).frame(maxWidth: .infinity, alignment: .leading)
+                    .floodlightCard(radius: 16)
+                    .accessibilityIdentifier("account-deletion.success")
+            }
+            if model.accountDeletionReceipt != nil {
+                Button("Check account deletion") { showingAccountDeletionReceipt = true }
+                    .buttonStyle(FloodlightQuietButtonStyle()).accessibilityIdentifier("account-deletion.receipt")
+            }
+            policyLinks
+        }
+    }
+
+    private var appleButton: some View {
+        // Apple's button, not a Floodlight action: its own colors, height and
+        // shape. It dims while we finish signing in.
+        NativeAppleSignInButton().disabled(model.isMutating).opacity(model.isMutating ? 0.6 : 1)
+    }
+
+    private var policyLinks: some View {
+        let layout = dynamicTypeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(spacing: 0)) : AnyLayout(HStackLayout(spacing: 28))
+        return layout {
+            if let url = model.configuration.privacyPolicyURL { policyLink("Privacy Policy", url) }
+            if let url = model.configuration.betaTermsURL { policyLink("Beta Terms", url) }
+        }.frame(maxWidth: .infinity)
+    }
+
+    private func policyLink(_ title: String, _ url: URL) -> some View {
+        Link(title, destination: url).floodlightFont(13.5, weight: .semibold).foregroundStyle(Floodlight.link)
+            .frame(minHeight: 44).contentShape(Rectangle())
     }
 }
 

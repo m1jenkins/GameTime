@@ -1033,6 +1033,28 @@ private actor FixturePendingChallengeStore: PendingChallengeStore {
     }
 }
 
+/// UI tests reach Sign in's failure and "Signing in…" states without Apple's
+/// sheet. `--fixture-sign-in-attempt=fail` makes the fixture server refuse one
+/// sign-in; `=wait` leaves it in progress.
+@MainActor
+enum FixtureSignInAttempt {
+    struct ServerRefused: LocalizedError {
+        var errorDescription: String? { "The fixture server refused this sign-in." }
+    }
+    private static let prefix = "--fixture-sign-in-attempt="
+    static var mode: String? {
+        let arguments = ProcessInfo.processInfo.arguments
+        guard arguments.contains("--fixture-mode") else { return nil }
+        return arguments.first { $0.hasPrefix(prefix) }.map { String($0.dropFirst(prefix.count)) }
+    }
+    private static var attempted = false
+    static func run(_ model: AppModel) async {
+        guard mode != nil, !attempted else { return }
+        attempted = true
+        await model.signInWithApple(AppleIdentity(idToken: "fixture", rawNonce: "fixture", firstSignInDisplayName: nil))
+    }
+}
+
 @MainActor
 private final class FixtureAuthClient: AuthClient {
     private let store: FixtureStore
@@ -1061,6 +1083,11 @@ private final class FixtureAuthClient: AuthClient {
 
     func signInWithApple(_ identity: AppleIdentity) async throws -> UUID {
         _ = identity
+        switch FixtureSignInAttempt.mode {
+        case "fail": throw FixtureSignInAttempt.ServerRefused()
+        case "wait": try await Task.sleep(for: .seconds(3600))
+        default: break
+        }
         store.userID = FixtureStore.callerID
         publish()
         return FixtureStore.callerID

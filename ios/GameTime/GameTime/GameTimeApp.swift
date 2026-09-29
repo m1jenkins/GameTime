@@ -404,14 +404,12 @@ struct RootView: View {
                             Task { await model.retryLaunch() }
                         }
                     )
-                    .preferredColorScheme(.light)
                 case .signedOut:
-                    LiveSignInView().preferredColorScheme(.light)
+                    LiveSignInView()
                 case .onboarding:
                     LiveOnboardingView(
                         namePrefill: model.onboardingNamePrefill
                     )
-                    .preferredColorScheme(.light)
                 case .signedIn:
                     SignalProductShell()
                 }

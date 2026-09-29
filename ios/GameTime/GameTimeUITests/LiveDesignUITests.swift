@@ -291,10 +291,53 @@ final class LiveDesignUITests: XCTestCase {
         let signOut = app.buttons["account-support.sign-out"]
         XCTAssertTrue(signOut.waitForExistence(timeout: 5)); signOut.tap()
         XCTAssertTrue(app.buttons["Sign in with Apple"].waitForExistence(timeout: 10))
-        XCTAssertTrue(app.staticTexts["Sign in"].exists)
+        XCTAssertTrue(app.staticTexts["Private challenges with friends. Proof from Apple Health."].exists)
         XCTAssertFalse(app.tabBars.buttons["You"].exists)
         XCTAssertFalse(element(app, "profile.count.met").exists)
         XCTAssertFalse(app.staticTexts["@alexnative"].exists, "Signing out must remove the prior account’s presentation")
+    }
+
+    /// Round 12: the wordmark, one line, Apple's button and two links. Any
+    /// failure, including the server's, is one quiet sentence, never an alert.
+    func testSignInShowsOneSentenceWhenTheServerRefuses() {
+        continueAfterFailure = false
+        let app = signIn(attempt: "fail")
+        defer { app.terminate() }
+        XCTAssertTrue(app.buttons["Sign in with Apple"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.staticTexts["Private challenges with friends. Proof from Apple Health."].exists)
+        XCTAssertTrue(labeled(app.descendants(matching: .any), "Privacy Policy").exists)
+        XCTAssertTrue(labeled(app.descendants(matching: .any), "Beta Terms").exists)
+        let failed = element(app, "auth.sign-in.failed")
+        XCTAssertTrue(failed.waitForExistence(timeout: 10))
+        XCTAssertEqual(failed.label, "Couldn’t sign in. Try again.")
+        XCTAssertFalse(app.alerts.firstMatch.exists, "Sign-in failures never raise the GameTime alert")
+        XCTAssertFalse(app.staticTexts["The fixture server refused this sign-in."].exists)
+        XCTAssertTrue(app.buttons["Sign in with Apple"].isEnabled, "Apple's button is how you try again")
+        for retired in ["Sign in", "Private account", "Your challenges and your record, in one place.", "Your goal",
+                        "Signing in creates your private account. Apple only shares your name the first time, and you can change it on the next screen."] {
+            XCTAssertFalse(app.staticTexts[retired].exists, retired)
+        }
+        capture(app, name: "signin-error")
+    }
+
+    func testSignInDimsAppleButtonWhileSigningIn() {
+        continueAfterFailure = false
+        let app = signIn(attempt: "wait")
+        defer { app.terminate() }
+        let status = element(app, "auth.sign-in.status")
+        XCTAssertTrue(status.waitForExistence(timeout: 10))
+        XCTAssertTrue(labeled(app.staticTexts, "Signing in…").exists)
+        XCTAssertFalse(app.buttons["Sign in with Apple"].isEnabled)
+        XCTAssertFalse(element(app, "auth.sign-in.failed").exists)
+        capture(app, name: "signin-loading")
+    }
+
+    private func signIn(attempt: String) -> XCUIApplication {
+        let app = XCUIApplication()
+        app.launchArguments = ["--fixture-mode", "--fixture-signed-out", "--fixture-sign-in-attempt=" + attempt,
+                               "-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
+        app.launch()
+        return app
     }
 
     func testNewSettingsPreserveHealthPrivacyAndAccountDeletionConfirmation() {

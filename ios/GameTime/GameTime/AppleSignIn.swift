@@ -64,6 +64,9 @@ enum AppleAuthorizationError: LocalizedError {
     }
 }
 
+/// Apple's own button at its own height and shape: black in light mode,
+/// white in dark (round 12). Every failure goes to `signInDidFail`, which Sign
+/// in shows as one sentence; cancelling Apple's sheet shows nothing.
 struct NativeAppleSignInButton: View {
     @Environment(\.colorScheme) private var colorScheme
     @Environment(AppModel.self) private var model
@@ -71,13 +74,14 @@ struct NativeAppleSignInButton: View {
 
     var body: some View {
         SignInWithAppleButton(.signIn) { request in
+            model.beginAppleSignIn()
             do {
                 let nonce = try AppleSignInNonce.random()
                 rawNonce = nonce
                 request.requestedScopes = [.fullName]
                 request.nonce = AppleSignInNonce.hash(nonce)
             } catch {
-                model.presentedError = error.localizedDescription
+                model.signInDidFail(error.localizedDescription)
             }
         } onCompletion: { result in
             handle(result)
@@ -85,8 +89,7 @@ struct NativeAppleSignInButton: View {
         .signInWithAppleButtonStyle(
             colorScheme == .dark ? .white : .black
         )
-        .frame(height: 52)
-        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .fixedSize(horizontal: false, vertical: true)
         .accessibilityLabel("Sign in with Apple")
     }
 
@@ -100,7 +103,7 @@ struct NativeAppleSignInButton: View {
             {
                 return
             }
-            model.presentedError = error.localizedDescription
+            model.signInDidFail(error.localizedDescription)
         case .success(let authorization):
             guard
                 let credential = authorization.credential
@@ -109,8 +112,8 @@ struct NativeAppleSignInButton: View {
                 let token = String(data: tokenData, encoding: .utf8),
                 let rawNonce
             else {
-                model.presentedError =
-                    "Apple did not return a usable identity token."
+                model.signInDidFail(
+                    AppleAuthorizationError.identityTokenUnavailable.localizedDescription)
                 return
             }
 

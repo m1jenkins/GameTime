@@ -86,6 +86,9 @@ final class AppModel {
     private(set) var exactHandleResult: ProfileCard?
     private(set) var lastSubmittedHandle: String?
     private(set) var isMutating = false
+    /// Why the last sign-in failed. Sign in shows one sentence for every
+    /// failure (COPY.md); the reason stays here for tests and logs.
+    private(set) var signInFailure: String?
     private(set) var accountDeletionNotice: String?
     private(set) var accountDeletionReceipt: AccountDeletionReceipt?
     private(set) var accountDeletionStatus: AccountDeletionStatus?
@@ -201,6 +204,7 @@ final class AppModel {
         isPerformingExplicitAuthMutation = true
         isMutating = true
         onboardingError = nil
+        signInFailure = nil
         defer {
             isMutating = false
             isPerformingExplicitAuthMutation = false
@@ -215,9 +219,18 @@ final class AppModel {
         } catch is CancellationError {
             return
         } catch {
-            present(error)
+            let mapped = AppMutationError.map(error)
+            guard mapped != .cancelled else { return }
+            signInDidFail(mapped.localizedDescription)
         }
     }
+
+    /// Apple's sheet is opening again, so the last failure no longer applies.
+    func beginAppleSignIn() { signInFailure = nil }
+
+    /// Apple's sheet, the nonce or our server refused the sign-in. Cancelling
+    /// Apple's sheet isn't a failure and never reaches here.
+    func signInDidFail(_ reason: String) { signInFailure = reason }
 
     func completeOnboarding(handle: String, displayName: String, ageConfirmed: Bool = false) async {
         guard let userID else {
@@ -1355,6 +1368,7 @@ final class AppModel {
         refreshGeneration = UUID()
         if !isPerformingExplicitAuthMutation { isMutating = false }
         self.userID = userID
+        signInFailure = nil
         accountDeletionNotice = nil
         accountDeletionReceipt = try? services.accountDeletionReceipts
             .load(for: userID)
