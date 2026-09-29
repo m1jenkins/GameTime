@@ -104,13 +104,15 @@ jobs:
       - name: Test
         run: swift test
 
-  # Product and conformance targets use the same audited Xcode/iOS toolchain.
-  # The runner image retains Xcode 26.2 and its matching iOS 26.2 simulator;
-  # selecting it explicitly prevents a default-Xcode image update from
-  # silently changing the compiler or SDK.
+  # Product and conformance targets use the development Mac's toolchain:
+  # Xcode 27.0 and an iPhone 17 Pro on iOS 27.0. Xcode 26.2 here failed builds
+  # and an audit that the Mac's Xcode 27 passed. Only GitHub's `xcode-27`
+  # image (a preview) has Xcode 27; macos-26 stops at 26.6. Selecting Xcode
+  # explicitly prevents an image update from silently changing the compiler
+  # or SDK.
   ios:
-    name: iOS product and conformance (Xcode 26.2)
-    runs-on: macos-26
+    name: iOS product and conformance (Xcode 27.0)
+    runs-on: xcode-27
     steps:
       - uses: actions/checkout@v6
 
@@ -123,10 +125,22 @@ jobs:
       - name: Audit Personal automatic-flow copy
         run: bash scripts/check-beta-candidate.sh --personal-copy-only
 
-      - name: Select audited Xcode
+      - name: Select Xcode 27.0
         run: |
-          sudo xcode-select --switch /Applications/Xcode_26.2.app/Contents/Developer
+          sudo xcode-select --switch /Applications/Xcode_27.0.app/Contents/Developer
           xcodebuild -version
+
+      # The image's iOS 27.0 devices don't include the iPhone 17 Pro.
+      - name: Create the iPhone 17 Pro simulator
+        run: |
+          if ! xcrun simctl list devices available -j | python3 -c '
+          import json, sys
+          devices = json.load(sys.stdin)["devices"].get("com.apple.CoreSimulator.SimRuntime.iOS-27-0", [])
+          sys.exit(0 if any(d["name"] == "iPhone 17 Pro" for d in devices) else 1)
+          '; then
+            xcrun simctl create "iPhone 17 Pro" com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro com.apple.CoreSimulator.SimRuntime.iOS-27-0
+          fi
+          xcrun simctl list devices "iPhone 17 Pro"
 
       - name: Resolve pinned product packages
         run: |
@@ -141,7 +155,7 @@ jobs:
             -project ios/GameTime/GameTime.xcodeproj \
             -scheme GameTime \
             -configuration Debug \
-            -destination 'platform=iOS Simulator,name=iPhone 17 Pro,OS=26.2' \
+            -destination 'platform=iOS Simulator,name=iPhone 17 Pro,OS=27.0' \
             CODE_SIGNING_ALLOWED=NO \
             test
 
@@ -161,9 +175,9 @@ jobs:
           for node in json.load(sys.stdin).get("testNodes", []): walk(node)
           ' | head -200
 
-      # The accessibility audit reads CI's rendered pixels, which can differ
-      # from a local simulator's. Keep its screenshots and notes (fixture data
-      # only) so a failure can be seen, not guessed at.
+      # CI's accessibility audit has flagged text that a Mac's audit passes and
+      # that CI's own screenshot shows as legible. Keep its screenshots and
+      # notes (fixture data only) so a failure can be seen, not guessed at.
       - name: Collect accessibility audit captures
         if: failure()
         run: |
@@ -212,6 +226,6 @@ jobs:
             -project ios/GameTimeConformance/GameTimeConformance.xcodeproj \
             -scheme GameTimeConformance \
             -configuration Debug \
-            -destination 'platform=iOS Simulator,name=iPhone 17 Pro,OS=26.2' \
+            -destination 'platform=iOS Simulator,name=iPhone 17 Pro,OS=27.0' \
             CODE_SIGNING_ALLOWED=NO \
             test
