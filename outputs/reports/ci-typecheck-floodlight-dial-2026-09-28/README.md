@@ -40,7 +40,9 @@ with its newer solver optimizations turned off. So the 26.2 failure can't be
 reproduced here.
 
 - `xcodebuild -scheme GameTime -configuration Debug -destination 'generic/platform=iOS Simulator' build`:
-  **BUILD SUCCEEDED**, with no warnings in `FloodlightDial.swift`.
+  **BUILD SUCCEEDED**, with no warnings in `FloodlightDial.swift`. CI's
+  Staging and Release build commands, and a `GameTime-TestFlight` build (CI
+  doesn't build that one), also succeeded.
 - Type-checking the file with `-debug-time-function-bodies`: the lobby pot's
   `body` went from 4.8 ms to 0.45 ms. The new methods take 2.5, 0.5 and 0.4 ms.
 - Same pixels: a temporary unit test (not committed) rendered the old and new
@@ -52,4 +54,17 @@ reproduced here.
 
 ## CI after the fix
 
-Pending. This section is updated when the run for this commit finishes.
+Run [36513016376](https://github.com/m1jenkins/GameTime/actions/runs/36513016376)
+at `bb1660a`, checked 25 minutes after the push (02:57 UTC, Sep 29):
+
+- Database, Edge Functions and Client Core passed.
+- The iOS job got past the build. "Test product app" had been running for 24
+  minutes; the failing run stopped 3 minutes into that step. `xcodebuild test`
+  stops as soon as anything fails to build, so the app and both test targets
+  compiled with Xcode 26.2.
+- Still running: the unit and UI tests, then the Staging and Release builds
+  and the conformance harness. The last green iOS job took about 68 minutes.
+  The final result is on the run page.
+
+This update was pushed with `[skip ci]`. CI cancels a running `main` run when
+a new one starts, and this receipt-only commit shouldn't cancel the fix's run.
