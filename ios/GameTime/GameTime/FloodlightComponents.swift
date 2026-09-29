@@ -238,6 +238,8 @@ struct FloodlightSyncTime: View {
     let short: String
     let spoken: String
     let late: Bool
+    /// `heroMuted` on the lit hero card, where the sky shows through.
+    var color = Floodlight.muted
     var refreshing = false
     var refresh: (() -> Void)? = nil
     var body: some View {
@@ -259,14 +261,14 @@ struct FloodlightSyncTime: View {
         HStack(spacing: 5) {
             if refreshing {
                 // Held to the icon's size so the line doesn't move while it syncs.
-                ProgressView().controlSize(.small).tint(Floodlight.muted).scaleEffect(0.7).frame(width: 16, height: 14)
+                ProgressView().controlSize(.small).tint(color).scaleEffect(0.7).frame(width: 16, height: 14)
             } else {
                 Image(systemName: late ? "clock" : "arrow.triangle.2.circlepath").font(.system(size: 12, weight: .semibold))
             }
             Text(short)
         }
         .floodlightFont(12.5, weight: .medium)
-        .foregroundStyle(Floodlight.muted)
+        .foregroundStyle(color)
     }
 }
 

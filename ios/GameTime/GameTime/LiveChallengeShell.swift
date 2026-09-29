@@ -265,10 +265,10 @@ struct LiveHomeView: View {
                     VStack(alignment: .leading, spacing: 3) {
                         FloodlightTitle(title, size: 28).foregroundStyle(Floodlight.ink).fixedSize(horizontal: false, vertical: true)
                         Text("\(ChallengePresentation.dates(row)) · \(LiveChallengePresentation.ends(row))")
-                            .floodlightFont(12.5, weight: .medium).foregroundStyle(Floodlight.muted).fixedSize(horizontal: false, vertical: true)
+                            .floodlightFont(12.5, weight: .medium).foregroundStyle(Floodlight.heroMuted).fixedSize(horizontal: false, vertical: true)
                     }
                     Spacer(minLength: 0)
-                    Image(systemName: "chevron.right").font(.system(size: 15, weight: .semibold)).foregroundStyle(Floodlight.muted).padding(.top, 4)
+                    Image(systemName: "chevron.right").font(.system(size: 15, weight: .semibold)).foregroundStyle(Floodlight.heroMuted).padding(.top, 4)
                 }
                 if typeSize.isAccessibilitySize {
                     // Larger text: the dial on its own row, then the number.
@@ -293,7 +293,7 @@ struct LiveHomeView: View {
                          badge: FloodlightChallengeFacts.met(row, person) ? FloodlightOrb.Badge.met : .none, waiting: row.savedScore(person) == nil)
                     })
                     if !typeSize.isAccessibilitySize { Spacer(minLength: 0) }
-                    if let sync { FloodlightSyncTime(short: sync.short, spoken: sync.spoken, late: sync.late) }
+                    if let sync { FloodlightSyncTime(short: sync.short, spoken: sync.spoken, late: sync.late, color: Floodlight.heroMuted) }
                 }
                 .padding(.top, 10)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -319,12 +319,12 @@ struct LiveHomeView: View {
                 .floodlightFont(70, weight: .semibold, condensed: true, maxScale: 1.3).tracking(-1.75).monospacedDigit()
                 .lineLimit(1).minimumScaleFactor(0.5).foregroundStyle(Floodlight.ink)
             if let target = own?.target {
-                Text("/ " + FloodlightChallengeFacts.goal(row, target)).floodlightFont(15, weight: .medium).foregroundStyle(Floodlight.muted)
+                Text("/ " + FloodlightChallengeFacts.goal(row, target)).floodlightFont(15, weight: .medium).foregroundStyle(Floodlight.heroMuted)
             } else {
-                Text(LiveChallengePresentation.unit(row.format.metric)).floodlightFont(15, weight: .medium).foregroundStyle(Floodlight.muted)
+                Text(LiveChallengePresentation.unit(row.format.metric)).floodlightFont(15, weight: .medium).foregroundStyle(Floodlight.heroMuted)
             }
             if let own, row.savedScore(own) == nil {
-                Text("No update yet").floodlightFont(13, weight: .semibold).foregroundStyle(Floodlight.muted).padding(.top, 4)
+                Text("No update yet").floodlightFont(13, weight: .semibold).foregroundStyle(Floodlight.heroMuted).padding(.top, 4)
             } else if let own, FloodlightChallengeFacts.met(row, own) {
                 Label("Goal reached", systemImage: "checkmark").floodlightFont(13, weight: .semibold).foregroundStyle(Floodlight.ink).padding(.top, 4)
             }
