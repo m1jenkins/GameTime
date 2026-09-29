@@ -410,6 +410,27 @@ figures, never a friend's color, and never rank people.
 | leave a challenge in progress (Floodlight QA, Sep 28) | **Leave challenge** as plain muted text across the bottom of the list, never red and never a pill. It still asks first with **Leave safely?**. |
 | Home action rows (Floodlight QA, Sep 28) | Titles in Barlow SemiBold 17, details in Barlow Regular 15, muted. The agree row's **Review** is the one blue pill; **Accept**, **Decline** and an invitation row's **Review** are gray. The agree row: **Agree to October runs** · "Agree by Sun, Sep 27", the last day before a midnight start in the challenge's time zone (VoiceOver: "Agree by Sunday, September 27"). Add the time only when it matters: "Agree by Sun, Sep 27, 11:59 PM Central Time" when your own day would end after the deadline, "Agree by Mon, Sep 28, 8:59 AM" when the start isn't at midnight. Never a countdown. Replaces "Before Sep 28, 12:00 AM". |
 
+## Sign in and Health permission
+
+Copy for the Floodlight round 12 proposal (September 28, 2026): Sign in and
+the Apple Health screen shown before the iOS permission sheet. These rows are
+designed, not built. Today's app uses `LiveSignInView` and asks for Apple
+Health from a challenge's Health card. Rows marked *app* already exist in
+native code. Apple Health hides a denied read, so a denial and an empty
+history get the same words. Add new strings and their `LiveDesignUITests`
+assertions in the same change.
+
+| Domain term | On screen |
+| --- | --- |
+| sign-in value line (new) | Under the **GameTime** wordmark: "Private challenges with friends. Proof from Apple Health." Nothing else on the hero. |
+| Sign in with Apple (app) | Apple's own button: **Sign in with Apple**, black in light mode and white in dark. VoiceOver: "Sign in with Apple". Never restyled or renamed. |
+| sign-in in progress (app) | "Signing in…" with a spinner under the dimmed Apple button. VoiceOver announces "Signing in…". |
+| sign-in failed (new) | **Couldn't sign in. Try again.** in a quiet card above the Apple button, which is the way to try again. Cancelling Apple's sheet shows nothing. Replaces the "GameTime" alert with Apple's error text. |
+| policy links on sign-in (app) | **Privacy Policy** · **Beta Terms**, small links at the bottom. |
+| Health permission, before the system sheet | **Connect Apple Health** (app) · "We read only what we need to check your challenge progress." (new) · **What we read**: **Steps**, **Activity minutes**, **Outdoor runs**, the three things the app asks for · "We never write to Apple Health." · "Friends see your totals, not your workouts." · "You can keep browsing without it." (from the Health card's line) · **Connect**, the one blue button · **Not now**, quiet text. Never list active energy or distance on their own: the app doesn't ask for them. Never "we never share": friends in a challenge see your total. |
+| Health permission, nothing readable afterwards | **No matching activity yet** · "We couldn't find matching activity in the last 30 days. Check your Apple Health settings and refresh after your Watch has synced." (app, readiness wording) · "Missing activity doesn't count against you." · **Refresh activity check**, a neutral gray button (app) · "Manage access in Apple Health" (app link) · "You can keep browsing without it." · **Continue**, the one blue button (new). Never "denied" or "permission". |
+| Not now on the Health screen | No follow-up screen. The app opens, and a challenge's Health card says **Apple Health isn't connected** with its own **Connect** (see the Floodlight rows above). |
+
 ## Where the copy lives
 
 User-facing strings are Swift literals in the view layer and in the

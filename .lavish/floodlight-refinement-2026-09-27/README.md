@@ -5,6 +5,34 @@ installation changed. The reference is the user-supplied
 https://claude.ai/artifact/8CfAk9nqDSLvSoEpYnck8r, a browser mock rather than an
 installed-app capture. All people and activity are fictional.
 
+## Proposed: round 12, Sign in and Apple Health
+
+The owner asked for this round on September 28. It covers the two screens a
+friend sees first in the TestFlight build, in light and dark at iPhone 17 size
+(402 × 874). Open [round 12](round-12/index.html). No earlier round changed.
+
+- **Sign in:** the GameTime wordmark and "Private challenges with friends.
+  Proof from Apple Health." sit on the sky or beams. Below them are Apple's
+  own button (black in light, white in dark, 52 points tall, 14-point corners)
+  and the app's **Privacy Policy** and **Beta Terms** links. The round also
+  draws the app's "Signing in…" state and a new "Couldn't sign in. Try again."
+  card, which replaces today's alert.
+- **Connect Apple Health:** a heart on the one lit surface, **What we read**
+  (Steps, Activity minutes, Outdoor runs), "We never write to Apple Health.",
+  one blue **Connect** and a quiet **Not now**. After the iOS sheet, if
+  nothing is readable, the screen says **No matching activity yet** and offers
+  **Manage access in Apple Health**, in round 11's words.
+
+The screens depart from the brief in two places. They list what the app
+actually asks for, with no active energy, and they say friends see your
+totals instead of "never shares". Native sign-in is locked to light mode
+today, and the app has no Health screen before the sheet.
+[The round record](round-12/DESIGN.md) lists the sources, departures, five open
+questions and the checks. All 10 phones fit 402 × 874 and pass the restraint
+checks. The contrast sweep finds zero misses across 80 text runs and 22
+graphics. COPY.md gained a "Sign in and Health permission" section. Nothing
+native changed.
+
 ## Proposed: round 11.1, the owner's decisions on round 11
 
 Round 11 with the ten decisions the owner approved on September 27. Open

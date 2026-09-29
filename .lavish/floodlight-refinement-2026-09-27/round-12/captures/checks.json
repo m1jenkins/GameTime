@@ -1,0 +1,1126 @@
+{
+ "tool": "Chromium 153.0.8010.12 through Playwright 1.63",
+ "date": "2026-09-28",
+ "errors": [],
+ "widths": {
+  "1440 side by side, light system": {
+   "scrollWidth": 1440,
+   "clientWidth": 1440,
+   "appearance": "both",
+   "visiblePhones": 10,
+   "pageTheme": "rgb(227, 233, 236)"
+  },
+  "1440 side by side, dark system": {
+   "scrollWidth": 1440,
+   "clientWidth": 1440,
+   "appearance": "both",
+   "visiblePhones": 10,
+   "pageTheme": "rgb(12, 18, 21)"
+  },
+  "1440 #light": {
+   "scrollWidth": 1440,
+   "clientWidth": 1440,
+   "appearance": "light",
+   "visiblePhones": 5,
+   "pageTheme": "rgb(227, 233, 236)"
+  },
+  "1440 #dark": {
+   "scrollWidth": 1440,
+   "clientWidth": 1440,
+   "appearance": "dark",
+   "visiblePhones": 5,
+   "pageTheme": "rgb(227, 233, 236)"
+  },
+  "390 light system": {
+   "scrollWidth": 390,
+   "clientWidth": 390,
+   "appearance": "both",
+   "visiblePhones": 10,
+   "pageTheme": "rgb(227, 233, 236)"
+  },
+  "390 dark system": {
+   "scrollWidth": 390,
+   "clientWidth": 390,
+   "appearance": "both",
+   "visiblePhones": 10,
+   "pageTheme": "rgb(12, 18, 21)"
+  },
+  "390 #dark": {
+   "scrollWidth": 390,
+   "clientWidth": 390,
+   "appearance": "dark",
+   "visiblePhones": 5,
+   "pageTheme": "rgb(227, 233, 236)"
+  },
+  "Appearance control, visible phones": {
+   "light": 5,
+   "dark": 5,
+   "both": 10
+  }
+ },
+ "pageOverflow": {
+  "1440 side by side, light system": [],
+  "1440 side by side, dark system": [],
+  "1440 #light": [],
+  "1440 #dark": [],
+  "390 light system": [],
+  "390 dark system": [],
+  "390 #dark": []
+ },
+ "phoneSize": {
+  "signin-light": {
+   "phone": "402x874",
+   "pageScrollWidth": 402,
+   "contentScrollHeight": 874,
+   "contentClientHeight": 874,
+   "fitsWithoutScrolling": true,
+   "overflow": []
+  },
+  "signin-dark": {
+   "phone": "402x874",
+   "pageScrollWidth": 402,
+   "contentScrollHeight": 874,
+   "contentClientHeight": 874,
+   "fitsWithoutScrolling": true,
+   "overflow": []
+  },
+  "signin-loading-light": {
+   "phone": "402x874",
+   "pageScrollWidth": 402,
+   "contentScrollHeight": 874,
+   "contentClientHeight": 874,
+   "fitsWithoutScrolling": true,
+   "overflow": []
+  },
+  "signin-loading-dark": {
+   "phone": "402x874",
+   "pageScrollWidth": 402,
+   "contentScrollHeight": 874,
+   "contentClientHeight": 874,
+   "fitsWithoutScrolling": true,
+   "overflow": []
+  },
+  "signin-error-light": {
+   "phone": "402x874",
+   "pageScrollWidth": 402,
+   "contentScrollHeight": 874,
+   "contentClientHeight": 874,
+   "fitsWithoutScrolling": true,
+   "overflow": []
+  },
+  "signin-error-dark": {
+   "phone": "402x874",
+   "pageScrollWidth": 402,
+   "contentScrollHeight": 874,
+   "contentClientHeight": 874,
+   "fitsWithoutScrolling": true,
+   "overflow": []
+  },
+  "health-light": {
+   "phone": "402x874",
+   "pageScrollWidth": 402,
+   "contentScrollHeight": 874,
+   "contentClientHeight": 874,
+   "fitsWithoutScrolling": true,
+   "overflow": []
+  },
+  "health-dark": {
+   "phone": "402x874",
+   "pageScrollWidth": 402,
+   "contentScrollHeight": 874,
+   "contentClientHeight": 874,
+   "fitsWithoutScrolling": true,
+   "overflow": []
+  },
+  "health-denied-light": {
+   "phone": "402x874",
+   "pageScrollWidth": 402,
+   "contentScrollHeight": 874,
+   "contentClientHeight": 874,
+   "fitsWithoutScrolling": true,
+   "overflow": []
+  },
+  "health-denied-dark": {
+   "phone": "402x874",
+   "pageScrollWidth": 402,
+   "contentScrollHeight": 874,
+   "contentClientHeight": 874,
+   "fitsWithoutScrolling": true,
+   "overflow": []
+  }
+ },
+ "restraint": {
+  "signin-light": {
+   "litSurfaces": 0,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "beamsOutsideSky": 0,
+   "gradientButtons": 0,
+   "gradientCards": 0,
+   "rasterImages": 0,
+   "emoji": 0,
+   "textInputs": 0,
+   "blueActions": [],
+   "words": 17
+  },
+  "signin-dark": {
+   "litSurfaces": 0,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "beamsOutsideSky": 0,
+   "gradientButtons": 0,
+   "gradientCards": 0,
+   "rasterImages": 0,
+   "emoji": 0,
+   "textInputs": 0,
+   "blueActions": [],
+   "words": 17
+  },
+  "signin-loading-light": {
+   "litSurfaces": 0,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "beamsOutsideSky": 0,
+   "gradientButtons": 0,
+   "gradientCards": 0,
+   "rasterImages": 0,
+   "emoji": 0,
+   "textInputs": 0,
+   "blueActions": [],
+   "words": 19
+  },
+  "signin-loading-dark": {
+   "litSurfaces": 0,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "beamsOutsideSky": 0,
+   "gradientButtons": 0,
+   "gradientCards": 0,
+   "rasterImages": 0,
+   "emoji": 0,
+   "textInputs": 0,
+   "blueActions": [],
+   "words": 19
+  },
+  "signin-error-light": {
+   "litSurfaces": 0,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "beamsOutsideSky": 0,
+   "gradientButtons": 0,
+   "gradientCards": 0,
+   "rasterImages": 0,
+   "emoji": 0,
+   "textInputs": 0,
+   "blueActions": [],
+   "words": 22
+  },
+  "signin-error-dark": {
+   "litSurfaces": 0,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "beamsOutsideSky": 0,
+   "gradientButtons": 0,
+   "gradientCards": 0,
+   "rasterImages": 0,
+   "emoji": 0,
+   "textInputs": 0,
+   "blueActions": [],
+   "words": 22
+  },
+  "health-light": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "beamsOutsideSky": 0,
+   "gradientButtons": 0,
+   "gradientCards": 0,
+   "rasterImages": 0,
+   "emoji": 0,
+   "textInputs": 0,
+   "blueActions": [
+    "Connect"
+   ],
+   "words": 44
+  },
+  "health-dark": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "beamsOutsideSky": 0,
+   "gradientButtons": 0,
+   "gradientCards": 0,
+   "rasterImages": 0,
+   "emoji": 0,
+   "textInputs": 0,
+   "blueActions": [
+    "Connect"
+   ],
+   "words": 44
+  },
+  "health-denied-light": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "beamsOutsideSky": 0,
+   "gradientButtons": 0,
+   "gradientCards": 0,
+   "rasterImages": 0,
+   "emoji": 0,
+   "textInputs": 0,
+   "blueActions": [
+    "Continue"
+   ],
+   "words": 47
+  },
+  "health-denied-dark": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "beamsOutsideSky": 0,
+   "gradientButtons": 0,
+   "gradientCards": 0,
+   "rasterImages": 0,
+   "emoji": 0,
+   "textInputs": 0,
+   "blueActions": [
+    "Continue"
+   ],
+   "words": 47
+  }
+ },
+ "tokensAndType": {
+  "signin-light": {
+   "tokenColors": 54,
+   "offToken": [],
+   "fontsOff": [],
+   "systemFontText": [
+    "status bar: -apple-system",
+    "Apple button: -apple-system"
+   ],
+   "barlowLoaded": true
+  },
+  "signin-dark": {
+   "tokenColors": 57,
+   "offToken": [],
+   "fontsOff": [],
+   "systemFontText": [
+    "status bar: -apple-system",
+    "Apple button: -apple-system"
+   ],
+   "barlowLoaded": true
+  },
+  "signin-loading-light": {
+   "tokenColors": 54,
+   "offToken": [],
+   "fontsOff": [],
+   "systemFontText": [
+    "status bar: -apple-system",
+    "Apple button: -apple-system"
+   ],
+   "barlowLoaded": true
+  },
+  "signin-loading-dark": {
+   "tokenColors": 57,
+   "offToken": [],
+   "fontsOff": [],
+   "systemFontText": [
+    "status bar: -apple-system",
+    "Apple button: -apple-system"
+   ],
+   "barlowLoaded": true
+  },
+  "signin-error-light": {
+   "tokenColors": 54,
+   "offToken": [],
+   "fontsOff": [],
+   "systemFontText": [
+    "status bar: -apple-system",
+    "Apple button: -apple-system"
+   ],
+   "barlowLoaded": true
+  },
+  "signin-error-dark": {
+   "tokenColors": 57,
+   "offToken": [],
+   "fontsOff": [],
+   "systemFontText": [
+    "status bar: -apple-system",
+    "Apple button: -apple-system"
+   ],
+   "barlowLoaded": true
+  },
+  "health-light": {
+   "tokenColors": 54,
+   "offToken": [],
+   "fontsOff": [],
+   "systemFontText": [
+    "status bar: -apple-system"
+   ],
+   "barlowLoaded": true
+  },
+  "health-dark": {
+   "tokenColors": 57,
+   "offToken": [],
+   "fontsOff": [],
+   "systemFontText": [
+    "status bar: -apple-system"
+   ],
+   "barlowLoaded": true
+  },
+  "health-denied-light": {
+   "tokenColors": 54,
+   "offToken": [],
+   "fontsOff": [],
+   "systemFontText": [
+    "status bar: -apple-system"
+   ],
+   "barlowLoaded": true
+  },
+  "health-denied-dark": {
+   "tokenColors": 57,
+   "offToken": [],
+   "fontsOff": [],
+   "systemFontText": [
+    "status bar: -apple-system"
+   ],
+   "barlowLoaded": true
+  }
+ },
+ "appleButton": {
+  "signin-light": {
+   "title": "Sign in with Apple",
+   "accessibleName": "Sign in with Apple",
+   "width": 366,
+   "height": 52,
+   "cornerRadius": "14px",
+   "background": "rgb(0, 0, 0)",
+   "titleColor": "rgb(255, 255, 255)",
+   "fontFamily": "-apple-system",
+   "fontSize": "20px",
+   "fontWeight": "500",
+   "logoLeftOfTitle": true,
+   "logoHeight": 19,
+   "disabled": false,
+   "opacity": "1"
+  },
+  "signin-dark": {
+   "title": "Sign in with Apple",
+   "accessibleName": "Sign in with Apple",
+   "width": 366,
+   "height": 52,
+   "cornerRadius": "14px",
+   "background": "rgb(255, 255, 255)",
+   "titleColor": "rgb(0, 0, 0)",
+   "fontFamily": "-apple-system",
+   "fontSize": "20px",
+   "fontWeight": "500",
+   "logoLeftOfTitle": true,
+   "logoHeight": 19,
+   "disabled": false,
+   "opacity": "1"
+  },
+  "signin-loading-light": {
+   "title": "Sign in with Apple",
+   "accessibleName": "Sign in with Apple",
+   "width": 366,
+   "height": 52,
+   "cornerRadius": "14px",
+   "background": "rgb(0, 0, 0)",
+   "titleColor": "rgb(255, 255, 255)",
+   "fontFamily": "-apple-system",
+   "fontSize": "20px",
+   "fontWeight": "500",
+   "logoLeftOfTitle": true,
+   "logoHeight": 19,
+   "disabled": true,
+   "opacity": "0.6"
+  },
+  "signin-loading-dark": {
+   "title": "Sign in with Apple",
+   "accessibleName": "Sign in with Apple",
+   "width": 366,
+   "height": 52,
+   "cornerRadius": "14px",
+   "background": "rgb(255, 255, 255)",
+   "titleColor": "rgb(0, 0, 0)",
+   "fontFamily": "-apple-system",
+   "fontSize": "20px",
+   "fontWeight": "500",
+   "logoLeftOfTitle": true,
+   "logoHeight": 19,
+   "disabled": true,
+   "opacity": "0.6"
+  },
+  "signin-error-light": {
+   "title": "Sign in with Apple",
+   "accessibleName": "Sign in with Apple",
+   "width": 366,
+   "height": 52,
+   "cornerRadius": "14px",
+   "background": "rgb(0, 0, 0)",
+   "titleColor": "rgb(255, 255, 255)",
+   "fontFamily": "-apple-system",
+   "fontSize": "20px",
+   "fontWeight": "500",
+   "logoLeftOfTitle": true,
+   "logoHeight": 19,
+   "disabled": false,
+   "opacity": "1"
+  },
+  "signin-error-dark": {
+   "title": "Sign in with Apple",
+   "accessibleName": "Sign in with Apple",
+   "width": 366,
+   "height": 52,
+   "cornerRadius": "14px",
+   "background": "rgb(255, 255, 255)",
+   "titleColor": "rgb(0, 0, 0)",
+   "fontFamily": "-apple-system",
+   "fontSize": "20px",
+   "fontWeight": "500",
+   "logoLeftOfTitle": true,
+   "logoHeight": 19,
+   "disabled": false,
+   "opacity": "1"
+  }
+ },
+ "copy": {
+  "signin-light": {
+   "missing": [],
+   "banned": [],
+   "text": "GAMETIME Private challenges with friends. Proof from Apple Health. Sign in with Apple Privacy Policy Beta Terms"
+  },
+  "signin-dark": {
+   "missing": [],
+   "banned": [],
+   "text": "GAMETIME Private challenges with friends. Proof from Apple Health. Sign in with Apple Privacy Policy Beta Terms"
+  },
+  "signin-loading-light": {
+   "missing": [],
+   "banned": [],
+   "text": "GAMETIME Private challenges with friends. Proof from Apple Health. Sign in with Apple Signing in… Privacy Policy Beta Terms"
+  },
+  "signin-loading-dark": {
+   "missing": [],
+   "banned": [],
+   "text": "GAMETIME Private challenges with friends. Proof from Apple Health. Sign in with Apple Signing in… Privacy Policy Beta Terms"
+  },
+  "signin-error-light": {
+   "missing": [],
+   "banned": [],
+   "text": "GAMETIME Private challenges with friends. Proof from Apple Health. Couldn’t sign in. Try again. Sign in with Apple Privacy Policy Beta Terms"
+  },
+  "signin-error-dark": {
+   "missing": [],
+   "banned": [],
+   "text": "GAMETIME Private challenges with friends. Proof from Apple Health. Couldn’t sign in. Try again. Sign in with Apple Privacy Policy Beta Terms"
+  },
+  "health-light": {
+   "missing": [],
+   "banned": [],
+   "text": "CONNECT APPLE HEALTH We read only what we need to check your challenge progress. WHAT WE READ Steps Activity minutes Outdoor runs We never write to Apple Health. Friends see your totals, not your workouts. You can keep browsing without it. Connect Not now"
+  },
+  "health-dark": {
+   "missing": [],
+   "banned": [],
+   "text": "CONNECT APPLE HEALTH We read only what we need to check your challenge progress. WHAT WE READ Steps Activity minutes Outdoor runs We never write to Apple Health. Friends see your totals, not your workouts. You can keep browsing without it. Connect Not now"
+  },
+  "health-denied-light": {
+   "missing": [],
+   "banned": [],
+   "text": "NO MATCHING ACTIVITY YET We couldn’t find matching activity in the last 30 days. Check your Apple Health settings and refresh after your Watch has synced. Missing activity doesn’t count against you. Refresh activity check Manage access in Apple Health You can keep browsing without it. Continue"
+  },
+  "health-denied-dark": {
+   "missing": [],
+   "banned": [],
+   "text": "NO MATCHING ACTIVITY YET We couldn’t find matching activity in the last 30 days. Check your Apple Health settings and refresh after your Watch has synced. Missing activity doesn’t count against you. Refresh activity check Manage access in Apple Health You can keep browsing without it. Continue"
+  }
+ },
+ "symbols": {
+  "used": [
+   "#i-apple",
+   "#i-brand",
+   "#i-status",
+   "#sf-exclamationmark.circle",
+   "#sf-figure.run",
+   "#sf-figure.walk",
+   "#sf-heart.fill",
+   "#sf-heart.text.clipboard",
+   "#sf-pencil.slash",
+   "#sf-person.2",
+   "#sf-stopwatch"
+  ],
+  "missing": []
+ },
+ "contrast": {
+  "runs": 80,
+  "graphics": 22,
+  "failures": [],
+  "lowestText": [
+   {
+    "kind": "text",
+    "text": "Connect",
+    "need": 4.5,
+    "disabled": false,
+    "worst": 5.33,
+    "p05": 5.33,
+    "phone": "health-dark"
+   },
+   {
+    "kind": "text",
+    "text": "Continue",
+    "need": 4.5,
+    "disabled": false,
+    "worst": 5.33,
+    "p05": 5.33,
+    "phone": "health-denied-dark"
+   },
+   {
+    "kind": "text",
+    "text": "Privacy Policy",
+    "need": 4.5,
+    "disabled": false,
+    "worst": 5.67,
+    "p05": 5.67,
+    "phone": "signin-light"
+   },
+   {
+    "kind": "text",
+    "text": "Beta Terms",
+    "need": 4.5,
+    "disabled": false,
+    "worst": 5.67,
+    "p05": 5.67,
+    "phone": "signin-light"
+   },
+   {
+    "kind": "text",
+    "text": "Privacy Policy",
+    "need": 4.5,
+    "disabled": false,
+    "worst": 5.67,
+    "p05": 5.67,
+    "phone": "signin-loading-light"
+   },
+   {
+    "kind": "text",
+    "text": "Beta Terms",
+    "need": 4.5,
+    "disabled": false,
+    "worst": 5.67,
+    "p05": 5.67,
+    "phone": "signin-loading-light"
+   },
+   {
+    "kind": "text",
+    "text": "Privacy Policy",
+    "need": 4.5,
+    "disabled": false,
+    "worst": 5.67,
+    "p05": 5.67,
+    "phone": "signin-error-light"
+   },
+   {
+    "kind": "text",
+    "text": "Beta Terms",
+    "need": 4.5,
+    "disabled": false,
+    "worst": 5.67,
+    "p05": 5.67,
+    "phone": "signin-error-light"
+   }
+  ],
+  "lowestGraphics": [
+   {
+    "kind": "graphic",
+    "text": "GameTime mark",
+    "need": 3,
+    "disabled": false,
+    "worst": 3.43,
+    "p05": 3.44,
+    "phone": "signin-light"
+   },
+   {
+    "kind": "graphic",
+    "text": "GameTime mark",
+    "need": 3,
+    "disabled": false,
+    "worst": 3.43,
+    "p05": 3.44,
+    "phone": "signin-loading-light"
+   },
+   {
+    "kind": "graphic",
+    "text": "GameTime mark",
+    "need": 3,
+    "disabled": false,
+    "worst": 3.43,
+    "p05": 3.44,
+    "phone": "signin-error-light"
+   },
+   {
+    "kind": "graphic",
+    "text": "Health heart",
+    "need": 3,
+    "disabled": false,
+    "worst": 3.68,
+    "p05": 3.71,
+    "phone": "health-light"
+   },
+   {
+    "kind": "graphic",
+    "text": "Health heart",
+    "need": 3,
+    "disabled": false,
+    "worst": 4.46,
+    "p05": 4.69,
+    "phone": "health-dark"
+   },
+   {
+    "kind": "graphic",
+    "text": "Health clipboard",
+    "need": 3,
+    "disabled": false,
+    "worst": 5.33,
+    "p05": 5.38,
+    "phone": "health-denied-light"
+   },
+   {
+    "kind": "graphic",
+    "text": "GameTime mark",
+    "need": 3,
+    "disabled": false,
+    "worst": 5.49,
+    "p05": 5.57,
+    "phone": "signin-dark"
+   },
+   {
+    "kind": "graphic",
+    "text": "GameTime mark",
+    "need": 3,
+    "disabled": false,
+    "worst": 5.49,
+    "p05": 5.57,
+    "phone": "signin-loading-dark"
+   }
+  ],
+  "perPhone": {
+   "signin-light": {
+    "runs": 6,
+    "graphics": 3,
+    "lowest": {
+     "kind": "graphic",
+     "text": "GameTime mark",
+     "need": 3,
+     "disabled": false,
+     "worst": 3.43,
+     "p05": 3.44,
+     "phone": "signin-light"
+    }
+   },
+   "signin-dark": {
+    "runs": 6,
+    "graphics": 3,
+    "lowest": {
+     "kind": "text",
+     "text": "9:41",
+     "need": 4.5,
+     "disabled": false,
+     "worst": 6.79,
+     "p05": 6.98,
+     "phone": "signin-dark"
+    }
+   },
+   "signin-loading-light": {
+    "runs": 7,
+    "graphics": 3,
+    "lowest": {
+     "kind": "graphic",
+     "text": "GameTime mark",
+     "need": 3,
+     "disabled": false,
+     "worst": 3.43,
+     "p05": 3.44,
+     "phone": "signin-loading-light"
+    }
+   },
+   "signin-loading-dark": {
+    "runs": 7,
+    "graphics": 3,
+    "lowest": {
+     "kind": "text",
+     "text": "9:41",
+     "need": 4.5,
+     "disabled": false,
+     "worst": 6.79,
+     "p05": 6.98,
+     "phone": "signin-loading-dark"
+    }
+   },
+   "signin-error-light": {
+    "runs": 7,
+    "graphics": 3,
+    "lowest": {
+     "kind": "graphic",
+     "text": "GameTime mark",
+     "need": 3,
+     "disabled": false,
+     "worst": 3.43,
+     "p05": 3.44,
+     "phone": "signin-error-light"
+    }
+   },
+   "signin-error-dark": {
+    "runs": 7,
+    "graphics": 3,
+    "lowest": {
+     "kind": "text",
+     "text": "9:41",
+     "need": 4.5,
+     "disabled": false,
+     "worst": 6.79,
+     "p05": 6.98,
+     "phone": "signin-error-dark"
+    }
+   },
+   "health-light": {
+    "runs": 12,
+    "graphics": 1,
+    "lowest": {
+     "kind": "graphic",
+     "text": "Health heart",
+     "need": 3,
+     "disabled": false,
+     "worst": 3.68,
+     "p05": 3.71,
+     "phone": "health-light"
+    }
+   },
+   "health-dark": {
+    "runs": 12,
+    "graphics": 1,
+    "lowest": {
+     "kind": "text",
+     "text": "Connect",
+     "need": 4.5,
+     "disabled": false,
+     "worst": 5.33,
+     "p05": 5.33,
+     "phone": "health-dark"
+    }
+   },
+   "health-denied-light": {
+    "runs": 8,
+    "graphics": 1,
+    "lowest": {
+     "kind": "text",
+     "text": "Manage access in Apple Health",
+     "need": 4.5,
+     "disabled": false,
+     "worst": 6.03,
+     "p05": 6.03,
+     "phone": "health-denied-light"
+    }
+   },
+   "health-denied-dark": {
+    "runs": 8,
+    "graphics": 1,
+    "lowest": {
+     "kind": "text",
+     "text": "Continue",
+     "need": 4.5,
+     "disabled": false,
+     "worst": 5.33,
+     "p05": 5.33,
+     "phone": "health-denied-dark"
+    }
+   }
+  },
+  "method": "Each phone alone at 402 x 874, 2x. Text is hidden, the phone is captured, and every glyph box (or graphic box) is compared pixel by pixel with its own composited color. p05 must reach 4.5:1 for text (3:1 for large text), and 3:1 for graphics and the Apple button edge. Disabled text is measured too, not skipped.",
+  "appleButtonText": [
+   {
+    "kind": "text",
+    "text": "Sign in with Apple",
+    "need": 4.5,
+    "disabled": false,
+    "worst": 21,
+    "p05": 21,
+    "phone": "signin-light"
+   },
+   {
+    "kind": "text",
+    "text": "Sign in with Apple",
+    "need": 4.5,
+    "disabled": false,
+    "worst": 21,
+    "p05": 21,
+    "phone": "signin-dark"
+   },
+   {
+    "kind": "text",
+    "text": "Sign in with Apple",
+    "need": 4.5,
+    "disabled": true,
+    "worst": 5.89,
+    "p05": 5.89,
+    "phone": "signin-loading-light"
+   },
+   {
+    "kind": "text",
+    "text": "Sign in with Apple",
+    "need": 4.5,
+    "disabled": true,
+    "worst": 7.76,
+    "p05": 7.76,
+    "phone": "signin-loading-dark"
+   },
+   {
+    "kind": "text",
+    "text": "Sign in with Apple",
+    "need": 4.5,
+    "disabled": false,
+    "worst": 21,
+    "p05": 21,
+    "phone": "signin-error-light"
+   },
+   {
+    "kind": "text",
+    "text": "Sign in with Apple",
+    "need": 4.5,
+    "disabled": false,
+    "worst": 21,
+    "p05": 21,
+    "phone": "signin-error-dark"
+   }
+  ],
+  "links": [
+   {
+    "kind": "text",
+    "text": "Privacy Policy",
+    "need": 4.5,
+    "disabled": false,
+    "worst": 5.67,
+    "p05": 5.67,
+    "phone": "signin-light"
+   },
+   {
+    "kind": "text",
+    "text": "Beta Terms",
+    "need": 4.5,
+    "disabled": false,
+    "worst": 5.67,
+    "p05": 5.67,
+    "phone": "signin-light"
+   },
+   {
+    "kind": "text",
+    "text": "Privacy Policy",
+    "need": 4.5,
+    "disabled": false,
+    "worst": 14.41,
+    "p05": 14.41,
+    "phone": "signin-dark"
+   },
+   {
+    "kind": "text",
+    "text": "Beta Terms",
+    "need": 4.5,
+    "disabled": false,
+    "worst": 14.41,
+    "p05": 14.41,
+    "phone": "signin-dark"
+   },
+   {
+    "kind": "text",
+    "text": "Privacy Policy",
+    "need": 4.5,
+    "disabled": false,
+    "worst": 5.67,
+    "p05": 5.67,
+    "phone": "signin-loading-light"
+   },
+   {
+    "kind": "text",
+    "text": "Beta Terms",
+    "need": 4.5,
+    "disabled": false,
+    "worst": 5.67,
+    "p05": 5.67,
+    "phone": "signin-loading-light"
+   },
+   {
+    "kind": "text",
+    "text": "Privacy Policy",
+    "need": 4.5,
+    "disabled": false,
+    "worst": 14.41,
+    "p05": 14.41,
+    "phone": "signin-loading-dark"
+   },
+   {
+    "kind": "text",
+    "text": "Beta Terms",
+    "need": 4.5,
+    "disabled": false,
+    "worst": 14.41,
+    "p05": 14.41,
+    "phone": "signin-loading-dark"
+   },
+   {
+    "kind": "text",
+    "text": "Privacy Policy",
+    "need": 4.5,
+    "disabled": false,
+    "worst": 5.67,
+    "p05": 5.67,
+    "phone": "signin-error-light"
+   },
+   {
+    "kind": "text",
+    "text": "Beta Terms",
+    "need": 4.5,
+    "disabled": false,
+    "worst": 5.67,
+    "p05": 5.67,
+    "phone": "signin-error-light"
+   },
+   {
+    "kind": "text",
+    "text": "Privacy Policy",
+    "need": 4.5,
+    "disabled": false,
+    "worst": 14.41,
+    "p05": 14.41,
+    "phone": "signin-error-dark"
+   },
+   {
+    "kind": "text",
+    "text": "Beta Terms",
+    "need": 4.5,
+    "disabled": false,
+    "worst": 14.41,
+    "p05": 14.41,
+    "phone": "signin-error-dark"
+   },
+   {
+    "kind": "text",
+    "text": "Manage access in Apple Health",
+    "need": 4.5,
+    "disabled": false,
+    "worst": 6.03,
+    "p05": 6.03,
+    "phone": "health-denied-light"
+   },
+   {
+    "kind": "text",
+    "text": "Manage access in Apple Health",
+    "need": 4.5,
+    "disabled": false,
+    "worst": 12.78,
+    "p05": 12.78,
+    "phone": "health-denied-dark"
+   }
+  ]
+ },
+ "captures": [
+  "signin-light.png",
+  "signin-dark.png",
+  "signin-loading-light.png",
+  "signin-loading-dark.png",
+  "signin-error-light.png",
+  "signin-error-dark.png",
+  "health-light.png",
+  "health-dark.png",
+  "health-denied-light.png",
+  "health-denied-dark.png",
+  "overview.png",
+  "review-1440.png",
+  "review-390-dark.png"
+ ],
+ "summary": {
+  "consoleErrors": 0,
+  "pageOverflow": 0,
+  "phoneSizeProblems": [],
+  "restraintBad": [],
+  "offToken": 0,
+  "fontsOff": 0,
+  "barlowLoadedEverywhere": true,
+  "copyMissing": [],
+  "bannedWords": [],
+  "symbolsMissing": [],
+  "contrast": "80 text runs and 22 graphics, 0 misses"
+ },
+ "unslop": {
+  "scanners": "unslop banned_phrase_scan.py and structure_scan.py",
+  "DESIGN.md": {
+   "phrase": {
+    "exit": 0,
+    "output": "{\n  \"total_violations\": 0,\n  \"by_severity\": {\n    \"hard\": 0,\n    \"soft\": 0\n  },\n  \"by_category\": {},\n  \"violations\": []\n}"
+   },
+   "structure": {
+    "exit": 0,
+    "output": "{\n  \"flags\": [],\n  \"flagged\": {},\n  \"metrics\": {\n    \"sentence_burstiness\": 0.833,\n    \"summary_sandwich\": 0.0,\n    \"paragraph_cv\": 0.71,\n    \"sentence_mean_len\": 22.1,\n    \"triad_density\": 0.0,\n    \"em_dash_per_1k\": 0.0,\n    \"bold_colon_listicle_count\": 0,\n    \"one_line_staccato_share\": 0.0,\n    \"connective_paragraph_openers\": 0,\n    \"every_template_openers\": 0,\n    \"signpost_density\": 0.0,\n    \"opener_unique_ratio\": 0.609,\n    \"top_opener_share\": 0.109,\n    \"max_consecutive_opener\": 2,\n    \"participial_closer_share\": 0.0,\n    \"conclusion_coda\": false\n  },\n  \"genre\": \"prose\",\n  \"prose_sentences\": 85,\n  \"prose_paragraphs\": 13\n}"
+   }
+  },
+  "README entry": {
+   "phrase": {
+    "exit": 0,
+    "output": "{\n  \"total_violations\": 0,\n  \"by_severity\": {\n    \"hard\": 0,\n    \"soft\": 0\n  },\n  \"by_category\": {},\n  \"violations\": []\n}"
+   },
+   "structure": {
+    "exit": 0,
+    "output": "{\n  \"flags\": [],\n  \"flagged\": {},\n  \"metrics\": {\n    \"sentence_burstiness\": 0.593,\n    \"summary_sandwich\": 0.0,\n    \"paragraph_cv\": 0.392,\n    \"sentence_mean_len\": 16.9,\n    \"triad_density\": 0.0,\n    \"em_dash_per_1k\": 0.0,\n    \"bold_colon_listicle_count\": 0,\n    \"one_line_staccato_share\": 0.0,\n    \"connective_paragraph_openers\": 0,\n    \"every_template_openers\": 0,\n    \"signpost_density\": 0.0,\n    \"opener_unique_ratio\": 1.0,\n    \"top_opener_share\": 0.083,\n    \"max_consecutive_opener\": 1,\n    \"participial_closer_share\": 0.0,\n    \"conclusion_coda\": false\n  },\n  \"genre\": \"prose\",\n  \"prose_sentences\": 16,\n  \"prose_paragraphs\": 3\n}"
+   }
+  },
+  "phone text (light phones, duplicate lines removed)": {
+   "phrase": {
+    "exit": 0,
+    "output": "{\n  \"total_violations\": 0,\n  \"by_severity\": {\n    \"hard\": 0,\n    \"soft\": 0\n  },\n  \"by_category\": {},\n  \"violations\": []\n}"
+   },
+   "structure": {
+    "exit": 1,
+    "output": "{\n  \"flags\": [\n    {\n      \"metric\": \"sentence_burstiness\",\n      \"value\": 0.479,\n      \"threshold\": \"< 0.55 over at least 8 prose sentences\",\n      \"severity\": \"soft\",\n      \"detail\": \"Sentence lengths are unusually uniform for running prose.\",\n      \"suggestion\": \"Vary sentence length and cadence; if this is formal reference prose, review before treating it as blocking.\"\n    }\n  ],\n  \"flagged\": {\n    \"sentence_burstiness\": true\n  },\n  \"metrics\": {\n    \"sentence_burstiness\": 0.479,\n    \"summary_sandwich\": 0.0,\n    \"paragraph_cv\": 0.0,\n    \"sentence_mean_len\": 8.0,\n    \"triad_density\": 0.0,\n    \"em_dash_per_1k\": 0.0,\n    \"bold_colon_listicle_count\": 0,\n    \"one_line_staccato_share\": 0.0,\n    \"connective_paragraph_openers\": 0,\n    \"every_template_openers\": 0,\n    \"signpost_density\": 0.0,\n    \"opener_unique_ratio\": 1.0,\n    \"top_opener_share\": 0.083,\n    \"max_consecutive_opener\": 1,\n    \"participial_closer_share\": 0.0,\n    \"conclusion_coda\": false\n  },\n  \"genre\": \"prose\",\n  \"prose_sentences\": 12,\n  \"prose_paragraphs\": 1\n}"
+   }
+  },
+  "review page notes": {
+   "phrase": {
+    "exit": 0,
+    "output": "{\n  \"total_violations\": 0,\n  \"by_severity\": {\n    \"hard\": 0,\n    \"soft\": 0\n  },\n  \"by_category\": {},\n  \"violations\": []\n}"
+   },
+   "structure": {
+    "exit": 1,
+    "output": "{\n  \"flags\": [\n    {\n      \"metric\": \"sentence_burstiness\",\n      \"value\": 0.425,\n      \"threshold\": \"< 0.55 over at least 8 prose sentences\",\n      \"severity\": \"soft\",\n      \"detail\": \"Sentence lengths are unusually uniform for running prose.\",\n      \"suggestion\": \"Vary sentence length and cadence; if this is formal reference prose, review before treating it as blocking.\"\n    }\n  ],\n  \"flagged\": {\n    \"sentence_burstiness\": true\n  },\n  \"metrics\": {\n    \"sentence_burstiness\": 0.425,\n    \"summary_sandwich\": 0.029,\n    \"paragraph_cv\": 0.439,\n    \"sentence_mean_len\": 13.8,\n    \"triad_density\": 0.0,\n    \"em_dash_per_1k\": 0.0,\n    \"bold_colon_listicle_count\": 0,\n    \"one_line_staccato_share\": 0.0,\n    \"connective_paragraph_openers\": 0,\n    \"every_template_openers\": 0,\n    \"signpost_density\": 0.0,\n    \"opener_unique_ratio\": 0.833,\n    \"top_opener_share\": 0.167,\n    \"max_consecutive_opener\": 1,\n    \"participial_closer_share\": 0.0,\n    \"conclusion_coda\": false\n  },\n  \"genre\": \"prose\",\n  \"prose_sentences\": 35,\n  \"prose_paragraphs\": 16\n}"
+   }
+  },
+  "summary": {
+   "phraseHits": 0,
+   "structureFlags": [
+    "phone text: soft sentence_burstiness 0.479. The input is separate UI strings joined one per line, not running prose, so it was left alone.",
+    "review page notes: soft sentence_burstiness 0.425. The notes are short reference lines under each phone pair, so they were left alone."
+   ],
+   "DESIGN.md": "0 phrase, 0 structure",
+   "README entry": "0 phrase, 0 structure"
+  }
+ }
+}
