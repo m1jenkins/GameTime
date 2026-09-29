@@ -238,7 +238,7 @@ struct FloodlightSyncTime: View {
     let short: String
     let spoken: String
     let late: Bool
-    /// `heroMuted` on the lit hero card, where the sky shows through.
+    /// Darker on the lit hero card, where the sky shows through.
     var color = Floodlight.muted
     var refreshing = false
     var refresh: (() -> Void)? = nil

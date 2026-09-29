@@ -293,7 +293,9 @@ struct LiveHomeView: View {
                          badge: FloodlightChallengeFacts.met(row, person) ? FloodlightOrb.Badge.met : .none, waiting: row.savedScore(person) == nil)
                     })
                     if !typeSize.isAccessibilitySize { Spacer(minLength: 0) }
-                    if let sync { FloodlightSyncTime(short: sync.short, spoken: sync.spoken, late: sync.late, color: Floodlight.heroMuted) }
+                    // Ink, not hero-muted: this footer sits where the frost is thinnest,
+                    // and CI's renderer failed the audit on both muted tokens there.
+                    if let sync { FloodlightSyncTime(short: sync.short, spoken: sync.spoken, late: sync.late, color: Floodlight.ink) }
                 }
                 .padding(.top, 10)
                 .frame(maxWidth: .infinity, alignment: .leading)

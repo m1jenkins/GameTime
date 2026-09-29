@@ -161,6 +161,34 @@ jobs:
           for node in json.load(sys.stdin).get("testNodes", []): walk(node)
           ' | head -200
 
+      # The accessibility audit reads CI's rendered pixels, which can differ
+      # from a local simulator's. Keep its screenshots and notes (fixture data
+      # only) so a failure can be seen, not guessed at.
+      - name: Collect accessibility audit captures
+        if: failure()
+        run: |
+          bundle=$(ls -td ~/Library/Developer/Xcode/DerivedData/GameTime-*/Logs/Test/*.xcresult | head -1)
+          mkdir -p "$RUNNER_TEMP/attachments" "$RUNNER_TEMP/audit"
+          xcrun xcresulttool export attachments --path "$bundle" --output-path "$RUNNER_TEMP/attachments" || exit 0
+          python3 - "$RUNNER_TEMP" <<'PY'
+          import json, shutil, sys
+          root = sys.argv[1]
+          for test in json.load(open(f"{root}/attachments/manifest.json")):
+              for item in test.get("attachments", []):
+                  name = item.get("suggestedHumanReadableName", "")
+                  if name.startswith("audit"):
+                      shutil.copy(f"{root}/attachments/{item['exportedFileName']}", f"{root}/audit/{name}")
+          PY
+
+      - name: Upload accessibility audit captures
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: accessibility-audit-captures
+          path: ${{ runner.temp }}/audit
+          retention-days: 7
+          if-no-files-found: ignore
+
       - name: Build staging and release products
         run: |
           xcodebuild \
