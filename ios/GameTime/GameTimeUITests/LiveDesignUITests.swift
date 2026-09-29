@@ -1,4 +1,5 @@
 #if DEBUG
+import UIKit
 import XCTest
 
 /// Exercises the ordinary native store and navigation with a local, mutable
@@ -729,6 +730,32 @@ final class LiveDesignUITests: XCTestCase {
         }
     }
 
+    /// The measured check behind Home's sync time passes only readable text.
+    /// Drawn at the sync time's size: ink and hero-muted on the frost CI drew
+    /// pass, and faint fails there (3.9:1) and on the dark hero (3.5:1).
+    func testMeasuredTextContrastRejectsLowContrastText() throws {
+        func measure(_ text: String, _ ink: UInt32, on background: UInt32) throws -> Double {
+            func color(_ hex: UInt32) -> UIColor {
+                UIColor(red: CGFloat(hex >> 16 & 0xFF) / 255, green: CGFloat(hex >> 8 & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
+            }
+            let format = UIGraphicsImageRendererFormat()
+            format.scale = 3; format.opaque = true; format.preferredRange = .standard
+            let image = UIGraphicsImageRenderer(size: CGSize(width: 51, height: 16), format: format).image { context in
+                color(background).setFill(); context.fill(CGRect(x: 0, y: 0, width: 51, height: 16))
+                (text as NSString).draw(at: .zero, withAttributes: [.font: UIFont.systemFont(ofSize: 12.5, weight: .medium),
+                                                                    .foregroundColor: color(ink)])
+            }
+            return try XCTUnwrap(image.cgImage.flatMap(Self.textContrast))
+        }
+        for text in ["1 min ago", "Just now"] {
+            XCTAssertEqual(try measure(text, 0x0A2D44, on: 0xEAF0F4), 12.4, accuracy: 0.2, text) // ink
+            XCTAssertGreaterThan(try measure(text, 0x365A70, on: 0xEAF0F4), 6, text)             // hero-muted
+            XCTAssertLessThan(try measure(text, 0x5A7B8F, on: 0xEAF0F4), 4.5, text)              // faint
+            XCTAssertGreaterThan(try measure(text, 0xD2DDE2, on: 0x18252B), 10, text)            // dark hero-muted
+            XCTAssertLessThan(try measure(text, 0x5A7B8F, on: 0x18252B), 4.5, text)              // faint, dark hero
+        }
+    }
+
     private func audit(_ app: XCUIApplication, _ screen: String) {
         // Let a sheet or a refreshed list finish moving before the audit reads it.
         _ = XCTWaiter.wait(for: [XCTestExpectation(description: "settle")], timeout: 1.5)
@@ -756,6 +783,12 @@ final class LiveDesignUITests: XCTestCase {
             else if issue.auditType == .contrast, covered(issue.element) { known.append(text) }
             else if issue.auditType == .contrast, issue.element == nil, unnamedCovered > 0 {
                 unnamedCovered -= 1; known.append(text + ", with text under the tab bar")
+            }
+            else if let element = issue.element, Self.isHomeSyncTime(screen, issue.auditType, element.label) {
+                let measured = measuredContrast(element, screen)
+                let reading = measured.map { String(format: ", measured %.1f:1 on screen", $0) } ?? ", not measured"
+                if let measured, measured >= 4.5 { known.append(text + reading) }
+                else { issues.append(text + " at \(element.frame.integral)" + reading) }
             }
             // Friends uses "Friends" for its title and a section header; the frame says which.
             else { issues.append(text + (issue.element.map { " at \($0.frame.integral)" } ?? "")) }
@@ -788,6 +821,53 @@ final class LiveDesignUITests: XCTestCase {
         case (.contrast, _), (.textClipped, _): screen.hasPrefix("Friend actions")
         default: false
         }
+    }
+
+    /// Home's sync time on the lit hero card ("Just now", "3 min ago"). CI's
+    /// audit reported it as low contrast in muted, hero-muted and ink, and ink
+    /// measured 12.4:1 in CI's screenshot, while a Mac's audit passes it. For
+    /// this text only, its own pixels decide: under 4.5:1 still fails.
+    private static func isHomeSyncTime(_ screen: String, _ type: XCUIAccessibilityAuditType, _ label: String) -> Bool {
+        type == .contrast && screen.hasPrefix("Home action rows")
+            && label.range(of: #"^(Just now|\d+ (min|h) ago)$"#, options: .regularExpression) != nil
+    }
+
+    /// Screenshots the element, keeps the picture with the audit captures and
+    /// measures it.
+    private func measuredContrast(_ element: XCUIElement, _ screen: String) -> Double? {
+        guard element.exists else { return nil }
+        let shot = element.screenshot()
+        let attachment = XCTAttachment(screenshot: shot)
+        attachment.name = "audit measured \(screen), \(element.label)"; attachment.lifetime = .keepAlways; add(attachment)
+        return shot.image.cgImage.flatMap(Self.textContrast)
+    }
+
+    /// WCAG contrast between text and its background in an opaque picture of
+    /// the text. The median pixel is the background. The text is the pixel 3 %
+    /// in from whichever end of the luminance range differs more from it, so
+    /// it's the glyphs' solid middles, not a stray pixel. Thin or faded glyphs
+    /// measure lower, never higher.
+    private static func textContrast(_ image: CGImage) -> Double? {
+        let (width, height) = (image.width, image.height)
+        guard width > 0, height > 0, let space = CGColorSpace(name: CGColorSpace.sRGB),
+              let context = CGContext(data: nil, width: width, height: height, bitsPerComponent: 8, bytesPerRow: width * 4,
+                                      space: space, bitmapInfo: CGImageAlphaInfo.noneSkipLast.rawValue),
+              let data = context.data else { return nil }
+        context.draw(image, in: CGRect(x: 0, y: 0, width: width, height: height))
+        let bytes = data.bindMemory(to: UInt8.self, capacity: context.bytesPerRow * height)
+        func linear(_ byte: UInt8) -> Double { let v = Double(byte) / 255; return v <= 0.04045 ? v / 12.92 : pow((v + 0.055) / 1.055, 2.4) }
+        var luminances: [Double] = []
+        luminances.reserveCapacity(width * height)
+        for y in 0..<height {
+            for x in 0..<width {
+                let i = y * context.bytesPerRow + x * 4
+                luminances.append(0.2126 * linear(bytes[i]) + 0.7152 * linear(bytes[i + 1]) + 0.0722 * linear(bytes[i + 2]))
+            }
+        }
+        luminances.sort()
+        let inset = luminances.count * 3 / 100, background = luminances[luminances.count / 2]
+        func ratio(_ a: Double, _ b: Double) -> Double { (max(a, b) + 0.05) / (min(a, b) + 0.05) }
+        return max(ratio(luminances[inset], background), ratio(luminances[luminances.count - 1 - inset], background))
     }
 
     /// A tab's content scrolls under the floating tab bar, and iOS 26 fades it
