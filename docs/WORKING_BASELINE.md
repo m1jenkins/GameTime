@@ -9,6 +9,20 @@ Continue from local `main`. Commit and merge completed authorized work into
 `main`; push remains separately authorized. Dated receipts below identify their
 tested source and publication status, not the current branch tip.
 
+## September 29 TestFlight release prep, 0.9.0 (2)
+
+- **Version:** 0.9.0 (2) on every app configuration.
+- **Privacy manifest:** now declares `systemUptime` (SystemBootTime, 35F9.1),
+  which App Store Connect would otherwise refuse. The candidate check blocks
+  if it's missing.
+- **Archive:** a local `GameTime-TestFlight` archive built from `b16685b`,
+  signed for development in Xcode's Archives folder. Distribution signing
+  needs an Apple account in Xcode.
+- **Checks:** full tests 706 passed and 0 failed. The What to Test and App
+  Store Connect drafts are written.
+- **Not uploaded.** The upload waits for Mason. See the
+  [receipt](../outputs/reports/testflight-release-prep-2026-09-29/README.md).
+
 ## September 29 iOS CI on Xcode 27; Home sync time measured (owner-approved)
 
 - **CI toolchain:** the iOS job runs on GitHub's `xcode-27` preview image
