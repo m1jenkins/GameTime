@@ -79,20 +79,22 @@ struct LiveChallengeShell: View {
         .background(SignalTheme.canvas.ignoresSafeArea())
         // The shell follows the phone's appearance. Creation, Settings (with
         // Personal history) and the invitation-link sheet have no dark design
-        // yet, so each presentation keeps asking for light.
+        // yet, so each presentation keeps asking for light. Connect Apple
+        // Health, shown first the first time someone creates, has both.
         .fullScreenCover(isPresented: $create, onDismiss: { personalRouteCoordinator?.allowPresentation() }) {
-            Group {
-                if serviceAvailable {
+            if serviceAvailable {
+                AppleHealthIntroductionGate {
                     ChallengeV1Create(store: store, allowed: creatablePolicies, onGoHome: {
                         selection = 0
                         homePath = []
                         libraryPath = []
                         recordPath = []
-                    })
-                } else {
-                    LiveUnavailableSheet(title: "New challenges aren’t open yet", message: "You can refresh your saved challenges or return later.")
+                    }).preferredColorScheme(.light)
                 }
-            }.preferredColorScheme(.light)
+            } else {
+                LiveUnavailableSheet(title: "New challenges aren’t open yet", message: "You can refresh your saved challenges or return later.")
+                    .preferredColorScheme(.light)
+            }
         }
         .sheet(isPresented: $settings, onDismiss: { personalRouteCoordinator?.allowPresentation() }) {
             NavigationStack {

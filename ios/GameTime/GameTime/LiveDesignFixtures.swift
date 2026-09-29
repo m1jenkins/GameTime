@@ -412,6 +412,11 @@ extension LiveDesignFixtures {
 @MainActor private final class LiveDesignHealthPermission: ChallengeHealthPermissionService {
     var supported: Bool { true }
     func connect(_ metric: ChallengeHealthMetric) async throws {}
+    /// `--fixture-health-no-activity` draws the screen after the Apple Health
+    /// sheet when nothing is readable.
+    func hasRecentActivity(days: Int) async -> Bool {
+        !ProcessInfo.processInfo.arguments.contains("--fixture-health-no-activity")
+    }
 }
 
 private struct LiveDesignHealthReader: ChallengeHealthStore {

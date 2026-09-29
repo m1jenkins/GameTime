@@ -43,6 +43,12 @@ final class ChallengeHealthComparisonCache {
         var state = try state(actor); state.connected = Array(Set(state.connected + [source])).sorted()
         try write(state, to: stateURL(actor))
     }
+    /// Whether this person has seen the Connect Apple Health screen, whichever
+    /// way they left it.
+    func introduced(actor: UUID) throws -> Bool { try state(actor).introduced ?? false }
+    func markIntroduced(actor: UUID) throws {
+        var state = try state(actor); state.introduced = true; try write(state, to: stateURL(actor))
+    }
     func pending(actor: UUID) throws -> Set<UUID> { Set(try state(actor).pending) }
     func enqueue(actor: UUID, ids: Set<UUID>) throws {
         var state = try state(actor); state.pending = Array(Set(state.pending).union(ids))
@@ -79,7 +85,7 @@ final class ChallengeHealthComparisonCache {
     private func stateURL(_ actor: UUID) -> URL { actorDirectory(actor).appendingPathComponent("work.json") }
     private func state(_ actor: UUID) throws -> Work {
         let file = stateURL(actor)
-        guard FileManager.default.fileExists(atPath: file.path) else { return Work(version: 1, actor: actor, connected: [], pending: []) }
+        guard FileManager.default.fileExists(atPath: file.path) else { return Work(version: 1, actor: actor, connected: [], pending: [], introduced: nil) }
         let saved: Work = try decode(file)
         guard saved.version == 1, saved.actor == actor, saved.pending.count <= 64, saved.connected.count <= 8 else { throw Failure.corrupt }
         return saved
@@ -103,7 +109,11 @@ final class ChallengeHealthComparisonCache {
             try file.setResourceValues(resource)
         } catch { throw Failure.unavailable }
     }
-    private struct Work: Codable { let version: Int; let actor: UUID; var connected: [String]; var pending: [UUID] }
+    private struct Work: Codable {
+        let version: Int; let actor: UUID; var connected: [String]; var pending: [UUID]
+        /// Absent in files written before round 12.
+        var introduced: Bool?
+    }
     private struct StoredSnapshot: Codable {
         let version: Int; let challengeID: UUID; let binding: Data; let start: Int64; let end: Int64; let purpose: String
         let observed: Date; let freshness: Date?; let earliest: Date?; let evidence: String

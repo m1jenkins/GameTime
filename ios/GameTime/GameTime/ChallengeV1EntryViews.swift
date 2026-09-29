@@ -214,7 +214,7 @@ struct ChallengeEntryPanel: View {
                 Text("Community challenges").liveFont(16, weight: .semibold).padding(.top, 4)
             }
             ForEach(store.communities) { row in
-                NavigationLink { ChallengeCommunityJoin(store: store, community: row) } label: {
+                NavigationLink { AppleHealthIntroductionGate { ChallengeCommunityJoin(store: store, community: row) } } label: {
                     HStack(spacing: 14) {
                         Image(systemName: "person.3").font(.system(size: 21, weight: .regular))
                             .foregroundStyle(SignalTheme.accent).frame(width: 36)

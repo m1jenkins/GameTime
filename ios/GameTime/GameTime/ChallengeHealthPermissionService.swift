@@ -24,6 +24,32 @@ final class HealthKitChallengeHealthPermissionService: ChallengeHealthPermission
         }
         try await health.requestAuthorization(toShare: [], read: [type])
     }
+    /// Round 12's Connect: steps, Exercise time (Activity minutes) and
+    /// workouts (outdoor runs) in one sheet. The app never asks to write.
+    func connectAll() async throws {
+        guard supported else { throw ChallengeV1Error.unavailable }
+        try await health.requestAuthorization(toShare: [], read: [
+            HKQuantityType(.stepCount), HKQuantityType(.appleExerciseTime), HKWorkoutType.workoutType()
+        ])
+    }
+    func hasRecentActivity(days: Int) async -> Bool {
+        guard supported else { return false }
+        let start = Calendar.current.date(byAdding: .day, value: -days, to: Date()) ?? Date()
+        let window = HKQuery.predicateForSamples(withStart: start, end: Date())
+        let runs = NSCompoundPredicate(andPredicateWithSubpredicates: [window, HKQuery.predicateForWorkouts(with: .running)])
+        let queries: [(HKSampleType, NSPredicate)] = [
+            (HKQuantityType(.stepCount), window), (HKQuantityType(.appleExerciseTime), window), (HKWorkoutType.workoutType(), runs)
+        ]
+        for (type, predicate) in queries where await anySample(type, predicate) { return true }
+        return false
+    }
+    private func anySample(_ type: HKSampleType, _ predicate: NSPredicate) async -> Bool {
+        await withCheckedContinuation { continuation in
+            health.execute(HKSampleQuery(sampleType: type, predicate: predicate, limit: 1, sortDescriptors: nil) { _, samples, _ in
+                continuation.resume(returning: samples?.isEmpty == false)
+            })
+        }
+    }
     func updates(for sources: Set<String>, active: Bool, perform: @escaping @MainActor @Sendable () -> Void) {
         update = active ? perform : nil
         guard self.sources != sources || self.active != active else { return }

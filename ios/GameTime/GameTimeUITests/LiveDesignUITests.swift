@@ -332,6 +332,74 @@ final class LiveDesignUITests: XCTestCase {
         capture(app, name: "signin-loading")
     }
 
+    /// Round 12: Connect Apple Health comes first the first time someone
+    /// creates. Not now goes straight on to "Who's it for?", with no follow-up.
+    func testConnectAppleHealthComesBeforeTheFirstCreateAndNotNowGoesStraightOn() {
+        continueAfterFailure = false
+        let app = launch("challenges", extra: ["--fixture-health-not-connected"])
+        defer { app.terminate() }
+        let create = app.buttons["beta.create.open"]
+        XCTAssertTrue(create.waitForExistence(timeout: 10)); create.tap()
+        XCTAssertTrue(element(app, "health.permission.connect").waitForExistence(timeout: 10))
+        for text in ["Connect Apple Health", "We read only what we need to check your challenge progress.", "What we read",
+                     "Steps", "Activity minutes", "Outdoor runs", "We never write to Apple Health.",
+                     "Friends see your progress, not your workouts.", "You can keep browsing without it."] {
+            XCTAssertTrue(shows(app, text), text)
+        }
+        for text in ["totals", "Active energy", "Distance", "denied", "permission", "never share"] {
+            XCTAssertFalse(shows(app, text), text)
+        }
+        XCTAssertEqual(app.buttons["health.permission.connect"].label, "Connect Apple Health")
+        capture(app, name: "health")
+        app.buttons["health.permission.not-now"].tap()
+        XCTAssertTrue(app.staticTexts["Who’s it for?"].waitForExistence(timeout: 10))
+        XCTAssertFalse(element(app, "health.permission").exists)
+        XCTAssertFalse(shows(app, "No matching activity yet"), "Not now has no follow-up screen")
+        app.buttons["beta.create.close"].tap()
+        XCTAssertTrue(create.waitForExistence(timeout: 10)); create.tap()
+        XCTAssertTrue(app.staticTexts["Who’s it for?"].waitForExistence(timeout: 10), "The screen appears only once")
+        XCTAssertFalse(element(app, "health.permission.connect").exists)
+    }
+
+    /// After Apple's sheet, nothing readable looks the same whether access was
+    /// denied or there's no history. Continue carries on to creating.
+    func testConnectAppleHealthWithNothingReadableOffersRefreshAndContinue() {
+        continueAfterFailure = false
+        let app = launch("challenges", extra: ["--fixture-health-not-connected", "--fixture-health-no-activity"])
+        defer { app.terminate() }
+        let create = app.buttons["beta.create.open"]
+        XCTAssertTrue(create.waitForExistence(timeout: 10)); create.tap()
+        let connect = app.buttons["health.permission.connect"]
+        XCTAssertTrue(connect.waitForExistence(timeout: 10)); connect.tap()
+        XCTAssertTrue(app.buttons["health.permission.continue"].waitForExistence(timeout: 10))
+        for text in ["No matching activity yet",
+                     "We couldn’t find matching activity in the last 30 days. Check your Apple Health settings and refresh after your Watch has synced.",
+                     "Missing activity doesn’t count against you.", "Refresh activity check", "Manage access in Apple Health",
+                     "You can keep browsing without it."] {
+            XCTAssertTrue(shows(app, text), text)
+        }
+        XCTAssertFalse(shows(app, "denied"))
+        capture(app, name: "health-denied")
+        app.buttons["health.permission.refresh"].tap()
+        XCTAssertTrue(app.buttons["health.permission.continue"].waitForExistence(timeout: 10))
+        app.buttons["health.permission.continue"].tap()
+        XCTAssertTrue(app.staticTexts["Who’s it for?"].waitForExistence(timeout: 10))
+    }
+
+    /// Joining: the first "Review and agree" shows the screen, then the agreement.
+    func testConnectAppleHealthComesBeforeTheFirstAgreement() {
+        continueAfterFailure = false
+        let app = launch("invitation", extra: ["--fixture-health-not-connected"])
+        defer { app.terminate() }
+        let agree = app.buttons["live.goal.agree"]
+        XCTAssertTrue(agree.waitForExistence(timeout: 10)); bring(app, agree); agree.tap()
+        let connect = app.buttons["health.permission.connect"]
+        XCTAssertTrue(connect.waitForExistence(timeout: 10)); connect.tap()
+        XCTAssertTrue(app.switches["beta.consent.toggle"].waitForExistence(timeout: 10)
+                      || element(app, "beta.consent.toggle").waitForExistence(timeout: 5))
+        XCTAssertFalse(element(app, "health.permission").exists)
+    }
+
     private func signIn(attempt: String) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["--fixture-mode", "--fixture-signed-out", "--fixture-sign-in-attempt=" + attempt,

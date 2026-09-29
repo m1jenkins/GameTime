@@ -7,10 +7,21 @@ protocol ChallengeHealthPermissionService: AnyObject {
     var supported: Bool { get }
     func connect(_ metric: ChallengeHealthMetric) async throws
     func updates(for sources: Set<String>, active: Bool, perform: @escaping @MainActor @Sendable () -> Void)
+    func connectAll() async throws
+    func hasRecentActivity(days: Int) async -> Bool
 }
 
 extension ChallengeHealthPermissionService {
     func updates(for sources: Set<String>, active: Bool, perform: @escaping @MainActor @Sendable () -> Void) {}
+    /// Round 12 asks for steps, Activity minutes and outdoor runs together.
+    /// HealthKit does this in one request; doubles connect each in turn.
+    func connectAll() async throws {
+        for metric in [ChallengeHealthMetric.steps, .exerciseSeconds, .runningMillimeters] { try await connect(metric) }
+    }
+    /// Whether any steps, Exercise time or running workout from the last
+    /// `days` is readable. Apple Health hides a denied read, so false means
+    /// denied or empty, and the screen says the same thing for both.
+    func hasRecentActivity(days: Int) async -> Bool { true }
 }
 
 @MainActor
@@ -58,6 +69,9 @@ final class ChallengeHealthFlowStore {
     private(set) var states: [UUID: State] = [:]
     private(set) var suggestions: [UUID: Int] = [:]
     private var connected: Set<String> = []
+    /// Loaded per actor; true until known so unreadable storage never blocks
+    /// creating or joining.
+    private(set) var introduced = true
     private var operationVersions: [UUID: UUID] = [:]
     private var stateBindings: [UUID: ChallengeHealthBinding] = [:]
     private var acknowledged: [UUID: Acknowledged] = [:]
@@ -75,10 +89,12 @@ final class ChallengeHealthFlowStore {
         cancelAll(); self.actor = actor; suspended = false
         actorSession = dependencies.actorSession?()
         states = [:]; suggestions = [:]; acknowledged = [:]; connected = []; pending = []; operationVersions = [:]; stateBindings = [:]
+        introduced = true
         dependencies.permission.updates(for: [], active: false, perform: {})
         guard let actor else { return }
         do { connected = try dependencies.cache.connected(actor: actor); pending = try dependencies.cache.pending(actor: actor) }
         catch { /* A fresh retry after unlock must restore state before reading. */ }
+        introduced = (try? dependencies.cache.introduced(actor: actor)) ?? true
         updateOpportunities()
     }
     func restrict(_ restricted: Bool) {
@@ -109,6 +125,48 @@ final class ChallengeHealthFlowStore {
         let age = dependencies.now().timeIntervalSince(receipt.at)
         return age >= 0 && age <= 300 && states[binding.challengeID]?.readiness == .ready && states[binding.challengeID]?.pendingDelivery == false
     }
+    // MARK: Connect Apple Health (round 12)
+
+    /// Every source the one request covers. Timed and distance runs both read
+    /// workouts.
+    static let appleHealthSources: [ChallengeHealthRealSourcePolicy] = [
+        .appleWatchAutomaticStepsV1, .appleWatchExerciseCreditV2,
+        .appleWorkoutOutdoorDistanceV1, .appleWorkoutOutdoorTimedV1
+    ]
+    /// The screen appears the first time someone creates or joins, unless
+    /// every source is already connected from a challenge's Health card.
+    var needsAppleHealthIntroduction: Bool {
+        guard actor != nil, !suspended, !introduced, dependencies.permission.supported else { return false }
+        return !Set(Self.appleHealthSources.map(\.identifier)).isSubset(of: connected)
+    }
+    /// Not now: the screen doesn't come back. A challenge's Health card says
+    /// Apple Health isn't connected and offers its own Connect.
+    func dismissAppleHealthIntroduction() {
+        guard let actor else { return }
+        introduced = true
+        try? dependencies.cache.markIntroduced(actor: actor)
+    }
+    /// Connect: one request for all three types. False when the request
+    /// didn't finish, so the screen can stay put.
+    func connectAppleHealth() async -> Bool {
+        guard let actor, !suspended, dependencies.permission.supported else { return false }
+        let epoch = generation
+        dismissAppleHealthIntroduction()
+        do {
+            try restoreConnection(actor)
+            try await dependencies.permission.connectAll()
+            try await check(actor, epoch)
+            for source in Self.appleHealthSources { try dependencies.cache.connect(actor: actor, source: source.identifier) }
+            connected.formUnion(Self.appleHealthSources.map(\.identifier))
+            updateOpportunities()
+            return true
+        } catch { return false }
+    }
+    /// The readiness wording's 30 days: anything to read after the sheet?
+    func hasRecentAppleHealthActivity() async -> Bool {
+        await dependencies.permission.hasRecentActivity(days: 30)
+    }
+
     func invalidateDraft(_ id: UUID) { cancel(id); states[id] = nil; suggestions[id] = nil }
 
     func authenticationRecovered(actor: UUID) async {

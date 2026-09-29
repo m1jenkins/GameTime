@@ -10,6 +10,8 @@ struct LiveGoalDetail: View {
     @Environment(\.dynamicTypeSize) private var typeSize
     @Environment(\.challengeHealthFlow) private var health
     @State private var sheet: Section?
+    /// Connect Apple Health, the first time someone agrees to a challenge.
+    @State private var healthIntroduction = false
     @State private var target = ""
     @State private var username = ""
     @State private var consent = false
@@ -64,6 +66,9 @@ struct LiveGoalDetail: View {
             consent = false; target = ""; username = ""; exitAction = nil; declining = false
             reviewReason = "wrong_total"; communityReportSaved = false; sheet = nil
         }
+        .fullScreenCover(isPresented: $healthIntroduction, onDismiss: { sheet = .agreement }) {
+            if let health { ConnectAppleHealthView(flow: health) { healthIntroduction = false } }
+        }
         .sheet(item: $sheet) { page in
             if page == .pot, let row {
                 FloodlightPotSheet(row: row, actor: store.actor, rules: { sheet = .rules })
@@ -114,7 +119,7 @@ struct LiveGoalDetail: View {
         } else if section == nil, let row, FloodlightChallengeFacts.layout(row, actor: store.actor) == .invitation {
             FloodlightInvitationPage(row: row, actor: store.actor, canAct: canAct, recovery: AnyView(recovery),
                                      back: { dismiss() }, pot: { sheet = .pot }, rules: { sheet = .rules },
-                                     agree: { sheet = .agreement }, decline: { declining = true })
+                                     agree: openAgreement, decline: { declining = true })
         } else {
             legacyPage.background(SignalTheme.canvas)
         }
@@ -325,9 +330,13 @@ struct LiveGoalDetail: View {
         }.padding(.top, 3).padding(.bottom, 4).accessibilityLabel("Challenge timeline")
     }
 
+    private func openAgreement() {
+        if health?.needsAppleHealthIntroduction == true { healthIntroduction = true } else { sheet = .agreement }
+    }
+
     @ViewBuilder private func stateActions(_ row: ChallengeV1) -> some View {
         if needsConsent(row) {
-            stateButton("Review and agree", subtitle: "Your agreement needs a final choice", symbol: "checkmark.shield") { sheet = .agreement }
+            stateButton("Review and agree", subtitle: "Your agreement needs a final choice", symbol: "checkmark.shield", action: openAgreement)
         } else if row.status == "lobby_open" {
             stateButton("Choose your goal", subtitle: row.creatorId == store.actor ? "Goals, friends and invitation" : "Set the goal you’ll agree to", symbol: "flag") { sheet = .lobby }
         } else if row.notice != nil || row.final != nil || !row.reviews.isEmpty {

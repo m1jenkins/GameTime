@@ -22,6 +22,47 @@ import XCTest
         try await Task.sleep(for: .milliseconds(25))
         XCTAssertEqual(updates, stopped)
     }
+    // MARK: Connect Apple Health (round 12)
+
+    func testAppleHealthScreenAppearsOnceAndNotNowIsRemembered() async throws {
+        let h = try FlowHarness(); defer { h.remove() }
+        XCTAssertTrue(h.flow.needsAppleHealthIntroduction)
+        h.flow.dismissAppleHealthIntroduction()
+        XCTAssertFalse(h.flow.needsAppleHealthIntroduction)
+        XCTAssertTrue(h.permission.connections.isEmpty, "Not now never asks Apple Health")
+        XCTAssertEqual(h.flow.state(for: try h.binding()).readiness, .notConnected,
+                       "The challenge's Health card still says Apple Health isn't connected")
+        h.flow.setActor(nil); h.flow.setActor(h.actor)
+        XCTAssertFalse(h.flow.needsAppleHealthIntroduction, "The screen doesn't come back after a relaunch")
+        h.flow.setActor(UUID())
+        XCTAssertTrue(h.flow.needsAppleHealthIntroduction, "Each person sees it once")
+    }
+
+    func testConnectAsksForAllThreeTypesAndConnectsEverySource() async throws {
+        let h = try FlowHarness(); defer { h.remove() }
+        let binding = try h.binding()
+        XCTAssertEqual(h.flow.state(for: binding).readiness, .notConnected)
+        let finished = await h.flow.connectAppleHealth()
+        XCTAssertTrue(finished)
+        XCTAssertEqual(h.permission.connections, [.steps, .exerciseSeconds, .runningMillimeters])
+        XCTAssertEqual(try h.cache.connected(actor: h.actor), Set(ChallengeHealthFlowStore.appleHealthSources.map(\.identifier)))
+        XCTAssertEqual(h.flow.state(for: binding).readiness, .noEligibleDataYet)
+        XCTAssertFalse(h.flow.needsAppleHealthIntroduction)
+        h.permission.recentActivity = false
+        let found = await h.flow.hasRecentAppleHealthActivity()
+        XCTAssertFalse(found)
+    }
+
+    func testAppleHealthScreenSkipsPeopleWhoAlreadyConnectedEverySource() async throws {
+        let h = try FlowHarness(); defer { h.remove() }
+        for source in ChallengeHealthFlowStore.appleHealthSources { try h.cache.connect(actor: h.actor, source: source.identifier) }
+        h.flow.setActor(h.actor)
+        XCTAssertFalse(h.flow.needsAppleHealthIntroduction)
+        h.permission.supported = false
+        h.flow.setActor(UUID())
+        XCTAssertFalse(h.flow.needsAppleHealthIntroduction, "No screen where Apple Health isn't available")
+    }
+
     func testLaunchRecoversSignedReadinessWithoutListedChallengesOrPendingWork() async throws {
         let h = try FlowHarness(); defer { h.remove() }
         let binding = try h.binding(); h.loseReadinessResponse = true
@@ -615,7 +656,10 @@ import XCTest
 }
 @MainActor private final class FlowPermission: ChallengeHealthPermissionService {
     var supported = true
-    func connect(_ metric: ChallengeHealthMetric) async throws {}
+    var connections: [ChallengeHealthMetric] = []
+    var recentActivity = true
+    func connect(_ metric: ChallengeHealthMetric) async throws { connections.append(metric) }
+    func hasRecentActivity(days: Int) async -> Bool { recentActivity }
 }
 @MainActor private final class FlowAuth: AuthClient {
     var actor: UUID?
