@@ -6,9 +6,9 @@ final class SignalCreationUITests: XCTestCase {
         continueAfterFailure = false
         let app = try launch(actor: 1)
         capture(app, "saved-account-home")
-        app.buttons["beta.tab.challenges"].tap()
+        app.tabBars.buttons["Challenges"].tap()
         capture(app, "saved-account-challenges")
-        app.buttons["beta.tab.you"].tap()
+        app.tabBars.buttons["You"].tap()
         XCTAssertTrue(app.staticTexts["profile.record-scope"].waitForExistence(timeout: 10))
         capture(app, "saved-account-profile")
         let activity = app.buttons["Activity"]
@@ -27,9 +27,9 @@ final class SignalCreationUITests: XCTestCase {
     @MainActor func testStagedPersonalJourney() throws {
         continueAfterFailure = false
         let app = try launch(actor: 1)
-        app.buttons["beta.tab.you"].tap()
+        app.tabBars.buttons["You"].tap()
         let upcomingBefore = try upcomingCount(app)
-        app.buttons["beta.tab.challenges"].tap(); confirmAge(app)
+        app.tabBars.buttons["Challenges"].tap(); confirmAge(app)
         app.buttons["beta.create.open"].tap()
         capture(app, "after-goal")
         chooseType(app, "personal")
@@ -99,18 +99,18 @@ final class SignalCreationUITests: XCTestCase {
         // assertions cannot pass by reading the creation draft or receipt.
         app.terminate()
         let restored = try launch(actor: 1)
-        restored.buttons["beta.tab.home"].tap()
+        restored.tabBars.buttons["Home"].tap()
         let homeGoal = restored.buttons["beta.home.goal"]
         XCTAssertTrue(homeGoal.waitForExistence(timeout: 20))
         XCTAssertTrue(homeGoal.label.contains("10,000"), homeGoal.label)
         capture(restored, "after-restored-home")
-        restored.buttons["beta.tab.challenges"].tap()
+        restored.tabBars.buttons["Challenges"].tap()
         tap(restored, "Upcoming")
         let savedGoal = restored.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "beta.row.scheduled.personal_steps_goal_v1.")).firstMatch
         XCTAssertTrue(savedGoal.waitForExistence(timeout: 10)); bring(restored, savedGoal)
         XCTAssertTrue(savedGoal.label.contains("10,000"), savedGoal.label)
         capture(restored, "after-restored-challenges")
-        restored.buttons["beta.tab.you"].tap()
+        restored.tabBars.buttons["You"].tap()
         XCTAssertEqual(try upcomingCount(restored), upcomingBefore + 1,
                        "Profile counts the saved ChallengeV1 goal after relaunch, independently of retained Personal history")
         let featured = restored.buttons["profile.featured-goal"]
@@ -136,7 +136,7 @@ final class SignalCreationUITests: XCTestCase {
     @MainActor func testSharedFriendCreation() throws {
         continueAfterFailure = false
         let app = try launch(actor: 2)
-        app.buttons["beta.tab.challenges"].tap(); confirmAge(app)
+        app.tabBars.buttons["Challenges"].tap(); confirmAge(app)
         app.buttons["beta.create.open"].tap()
         chooseType(app, "leaderboard")
         for metric in ["steps", "exercise", "distance", "timed"] {
@@ -204,7 +204,7 @@ final class SignalCreationUITests: XCTestCase {
             "action": "clock", "now": ISO8601DateFormatter().string(from: start.addingTimeInterval(-48 * 60 * 60))
         ])
         let app = try launch(actor: 2)
-        app.buttons["beta.tab.challenges"].tap(); confirmAge(app)
+        app.tabBars.buttons["Challenges"].tap(); confirmAge(app)
         let invitation = app.textFields["Invitation link"]
         if !invitation.exists { tap(app, "Invitations and community") }
         bring(app, invitation); invitation.tap()
@@ -217,8 +217,8 @@ final class SignalCreationUITests: XCTestCase {
                        "Malformed invitation text cannot request access or a lobby place")
         capture(app, "invitation-invalid-entry")
         invitation.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: invalidLink.count))
-        app.buttons["beta.tab.home"].tap()
-        app.buttons["beta.tab.challenges"].tap()
+        app.tabBars.buttons["Home"].tap()
+        app.tabBars.buttons["Challenges"].tap()
 
         // Actor 2's existing fictional leaderboard lobby was saved by the
         // owned journey fixture. This test never creates another challenge.
@@ -252,12 +252,12 @@ final class SignalCreationUITests: XCTestCase {
     @MainActor func testFriendGoalAndRetainedAccess() throws {
         continueAfterFailure = false
         let app = try launch(actor: 4)
-        app.buttons["beta.tab.home"].tap()
+        app.tabBars.buttons["Home"].tap()
         let existing = app.buttons["Existing challenges"]
         XCTAssertTrue(existing.waitForExistence(timeout: 5)); bring(app, existing); existing.tap()
         let done = app.buttons["Done"]
         XCTAssertTrue(done.waitForExistence(timeout: 5)); capture(app, "after-retained-access"); done.tap()
-        app.buttons["beta.tab.challenges"].tap(); confirmAge(app)
+        app.tabBars.buttons["Challenges"].tap(); confirmAge(app)
         app.buttons["beta.create.open"].tap()
         next(app)
         let save = app.buttons["beta.create.submit"]; bring(app, save); save.tap()
@@ -329,7 +329,7 @@ final class SignalCreationUITests: XCTestCase {
     @MainActor func testCompactCreationControls() throws {
         continueAfterFailure = false
         let app = try launch(actor: 3)
-        app.buttons["beta.tab.challenges"].tap(); confirmAge(app)
+        app.tabBars.buttons["Challenges"].tap(); confirmAge(app)
         app.buttons["beta.create.open"].tap(); capture(app, "compact-goal")
         let close = app.buttons["beta.create.close"]
         XCTAssertTrue(close.waitForExistence(timeout: 5))
@@ -423,7 +423,7 @@ final class SignalCreationUITests: XCTestCase {
         app.launch()
         let signIn = app.buttons["auth.local-substitute"]
         XCTAssertTrue(signIn.waitForExistence(timeout: 10)); signIn.tap()
-        XCTAssertTrue(app.buttons["beta.tab.challenges"].waitForExistence(timeout: 20))
+        XCTAssertTrue(app.tabBars.buttons["Challenges"].waitForExistence(timeout: 20))
         return app
     }
     @MainActor func confirmAge(_ app: XCUIApplication) {

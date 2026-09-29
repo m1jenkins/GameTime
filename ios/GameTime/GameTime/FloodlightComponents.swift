@@ -232,20 +232,41 @@ struct FloodlightProgressBar: View {
 }
 
 /// When a saved update arrived: a sync arrow and "3 min ago", or a clock and
-/// the day and time when it's from an earlier day.
+/// the day and time when it's from an earlier day. Given `refresh`, it's also
+/// the refresh control, with a spinner in the icon's place while it syncs.
 struct FloodlightSyncTime: View {
     let short: String
     let spoken: String
     let late: Bool
+    var refreshing = false
+    var refresh: (() -> Void)? = nil
     var body: some View {
+        if let refresh {
+            // A 44pt target that overhangs the line, so the card keeps its layout.
+            Button(action: refresh) {
+                label.padding(.horizontal, 8).frame(minHeight: 44).contentShape(Rectangle())
+            }
+            .buttonStyle(.plain).padding(.horizontal, -8).padding(.vertical, -14)
+            .accessibilityLabel("Refresh activity")
+            .accessibilityValue(refreshing ? "Refreshing" : spoken)
+            .accessibilityIdentifier("live.goal.sync")
+        } else {
+            label.accessibilityElement(children: .ignore).accessibilityLabel(spoken)
+        }
+    }
+
+    private var label: some View {
         HStack(spacing: 5) {
-            Image(systemName: late ? "clock" : "arrow.triangle.2.circlepath").font(.system(size: 12, weight: .semibold))
+            if refreshing {
+                // Held to the icon's size so the line doesn't move while it syncs.
+                ProgressView().controlSize(.small).tint(Floodlight.muted).scaleEffect(0.7).frame(width: 16, height: 14)
+            } else {
+                Image(systemName: late ? "clock" : "arrow.triangle.2.circlepath").font(.system(size: 12, weight: .semibold))
+            }
             Text(short)
         }
         .floodlightFont(12.5, weight: .medium)
         .foregroundStyle(Floodlight.muted)
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(spoken)
     }
 }
 

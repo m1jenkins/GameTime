@@ -150,6 +150,8 @@ struct LiveSecondaryButtonStyle: ButtonStyle {
 struct LivePillButtonStyle: ButtonStyle {
     enum Kind { case filled, quiet, text }
     let kind: Kind
+    /// A quiet pill's label color when a Floodlight screen asks for its ink.
+    var ink: Color? = nil
     @Environment(\.isEnabled) private var enabled
     @Environment(\.dynamicTypeSize) private var typeSize
     func makeBody(configuration: Configuration) -> some View {
@@ -157,7 +159,7 @@ struct LivePillButtonStyle: ButtonStyle {
             .lineLimit(typeSize.isAccessibilitySize ? nil : 1)
             .fixedSize(horizontal: !typeSize.isAccessibilitySize, vertical: true)
             .padding(.horizontal, kind == .text ? 8 : 15).padding(.vertical, 9)
-            .foregroundStyle(!enabled ? SignalTheme.textSecondary : kind == .filled ? SignalTheme.onAccent : kind == .text ? SignalTheme.textSecondary : SignalTheme.textPrimary)
+            .foregroundStyle(!enabled ? SignalTheme.textSecondary : kind == .filled ? SignalTheme.onAccent : kind == .text ? SignalTheme.textSecondary : ink ?? SignalTheme.textPrimary)
             .background {
                 if kind != .text {
                     Capsule().fill(kind == .filled && enabled ? SignalTheme.accentFill : SignalTheme.soft)

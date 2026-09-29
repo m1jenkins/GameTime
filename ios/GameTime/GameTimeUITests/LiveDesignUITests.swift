@@ -9,8 +9,8 @@ final class LiveDesignUITests: XCTestCase {
         continueAfterFailure = false
         for route in ["home", "goal", "challenges", "you"] {
             let app = launch(route)
-            for tab in ["home", "challenges", "you"] {
-                XCTAssertTrue(app.buttons["beta.tab." + tab].exists)
+            for tab in ["Home", "Challenges", "You"] {
+                XCTAssertTrue(app.tabBars.buttons[tab].exists)
             }
             switch route {
             case "home":
@@ -169,8 +169,8 @@ final class LiveDesignUITests: XCTestCase {
         backs[0].tap()
         XCTAssertTrue(saved.waitForExistence(timeout: 5))
         bring(app, home); home.tap()
-        XCTAssertTrue(app.buttons["beta.tab.home"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.buttons["beta.tab.home"].isSelected)
+        XCTAssertTrue(app.tabBars.buttons["Home"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.tabBars.buttons["Home"].isSelected)
         XCTAssertFalse(saved.exists)
     }
 
@@ -279,7 +279,7 @@ final class LiveDesignUITests: XCTestCase {
         // as hittable. Exercise the field's real .onSubmit path instead.
         let keyboardDone = app.keyboards.buttons["Done"]
         XCTAssertTrue(keyboardDone.waitForExistence(timeout: 5)); keyboardDone.tap()
-        let record = app.buttons["beta.tab.you"]
+        let record = app.tabBars.buttons["You"]
         XCTAssertTrue(record.waitForExistence(timeout: 10)); record.tap()
         XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "Alex Native")).firstMatch.waitForExistence(timeout: 5),
                       "The record must use the newly saved profile")
@@ -291,7 +291,7 @@ final class LiveDesignUITests: XCTestCase {
         XCTAssertTrue(signOut.waitForExistence(timeout: 5)); signOut.tap()
         XCTAssertTrue(app.buttons["Sign in with Apple"].waitForExistence(timeout: 10))
         XCTAssertTrue(app.staticTexts["Sign in"].exists)
-        XCTAssertFalse(app.buttons["beta.tab.you"].exists)
+        XCTAssertFalse(app.tabBars.buttons["You"].exists)
         XCTAssertFalse(element(app, "profile.count.met").exists)
         XCTAssertFalse(app.staticTexts["@alexnative"].exists, "Signing out must remove the prior account’s presentation")
     }
@@ -359,15 +359,27 @@ final class LiveDesignUITests: XCTestCase {
         XCTAssertEqual(app.buttons["live.goal.pot"].label, "Pot: $80 in simulated stakes, $20 each. Show how the pot works.")
         XCTAssertTrue(app.buttons["Sam, 7.8 of 20 kilometres, 39 percent of their goal."].exists)
         XCTAssertTrue(app.buttons["Priya, 10 of 10 kilometres, 100 percent of their goal, goal reached."].exists)
-        for text in ["Tuesday, day 2 of 7. Ends Sunday.", "6.4", "/ 20 km", "13.6 km to go", "Updated from Apple Health 1 min ago"] {
+        for text in ["Tuesday, day 2 of 7. Ends Sunday.", "6.4", "/ 20 km", "13.6 km to go"] {
             XCTAssertTrue(shows(app, text), text)
         }
+        // The update time on your card is the refresh control (Floodlight QA, Sep 28).
+        let sync = app.buttons["live.goal.sync"]
+        XCTAssertTrue(sync.exists)
+        XCTAssertEqual(sync.label, "Refresh activity")
+        XCTAssertEqual(sync.value as? String, "Updated from Apple Health 1 min ago")
         capture(app, name: "floodlight-challenge")
+        sync.tap()
+        XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "value == %@", "Updated from Apple Health 1 min ago"), object: sync)], timeout: 10), .completed)
         let stake = app.buttons["live.goal.stake"]
         bring(app, stake)
         XCTAssertEqual(stake.label, "Your simulated stake, $20. Reach 20 kilometres and it comes back after results are final. Show how the pot works.")
-        bring(app, app.buttons["beta.leave"])
+        let leave = app.buttons["beta.leave"]
+        bring(app, leave)
+        XCTAssertEqual(leave.label, "Leave challenge")
+        XCTAssertFalse(app.buttons["live.goal.refresh"].exists, "No Refresh activity pill")
         XCTAssertTrue(app.buttons["live.goal.rules"].exists)
+        XCTAssertLessThan(app.buttons["live.goal.rules"].frame.maxY, leave.frame.minY, "Leave challenge ends the list")
         XCTAssertTrue(shows(app, "What counts"))
         capture(app, name: "floodlight-challenge-panel")
         bring(app, stake, upward: false)
@@ -403,7 +415,7 @@ final class LiveDesignUITests: XCTestCase {
         XCTAssertEqual(agree.label, "Review and agree")
         for text in ["Stake", "$20", "each", "Fee", "$0", "Simulated stakes — no real money moves.", "Both reach it", "Both stakes back",
                      "One reaches it", "They get both stakes", "Both miss", "No one collects", "Couldn’t confirm",
-                     "Stakes back · Challenge won’t count", "Outdoor runs on Apple Watch",
+                     "Stakes back · Challenge won’t\u{00A0}count", "Outdoor runs on Apple Watch",
                      "Missing or partial activity never counts as a miss.", "48 h to ask for a review", "Leave before your result is final"] {
             XCTAssertTrue(shows(app, text), text)
         }
@@ -442,6 +454,31 @@ final class LiveDesignUITests: XCTestCase {
         card.tap()
         XCTAssertTrue(element(app, "live.goal.hero").waitForExistence(timeout: 10))
         app.terminate()
+    }
+
+    /// Floodlight QA, September 28: before you connect Apple Health, the
+    /// challenge's Health card says so in plain words, and your card shows no
+    /// progress or update time, because nothing of yours has been sent.
+    func testChallengeHealthCardBeforeConnectingShowsNoProgressOrUpdateTime() {
+        continueAfterFailure = false
+        let app = launch("goal", extra: ["--fixture-health-not-connected"])
+        defer { app.terminate() }
+        XCTAssertTrue(element(app, "live.goal.hero").waitForExistence(timeout: 10))
+        XCTAssertTrue(app.buttons["You, no update yet."].exists)
+        XCTAssertTrue(shows(app, "No update yet"))
+        XCTAssertFalse(app.buttons["live.goal.sync"].exists, "No update time without a saved update")
+        XCTAssertFalse(shows(app, "Updated from Apple Health"))
+        XCTAssertFalse(shows(app, "/ 20 km"), "No progress without a saved update")
+        let connect = app.buttons["beta.health.connect"]
+        bring(app, connect)
+        XCTAssertEqual(connect.label, "Connect Apple Health")
+        for text in ["Apple Health isn’t connected", "Connect to check your runs. You can keep browsing without it."] {
+            XCTAssertTrue(shows(app, text), text)
+        }
+        XCTAssertFalse(shows(app, "Connect Apple Health when you’re ready"))
+        XCTAssertTrue(shows(app, "Manage access in Apple Health"))
+        XCTAssertFalse(app.buttons["live.goal.refresh"].exists, "Connect is the card's one action")
+        capture(app, name: "floodlight-challenge-health-card")
     }
 
     /// Any element whose label contains the text, so combined VoiceOver
@@ -556,6 +593,10 @@ final class LiveDesignUITests: XCTestCase {
         XCTAssertTrue(accepted.exists)
         XCTAssertLessThan(agree.frame.minY, request.frame.minY)
         XCTAssertLessThan(request.frame.minY, accepted.frame.minY)
+        // The last day to agree, before October runs starts at midnight Pacific.
+        XCTAssertTrue(shows(app, "Agree by Sunday, September 27"))
+        XCTAssertFalse(shows(app, "Before Sep 28"))
+        XCTAssertTrue(app.buttons["Accept Taylor Kim’s request"].exists)
         capture(app, name: "home-action-rows")
 
         app.buttons["Decline Taylor Kim’s request"].tap()
@@ -692,21 +733,33 @@ final class LiveDesignUITests: XCTestCase {
         // Let a sheet or a refreshed list finish moving before the audit reads it.
         _ = XCTWaiter.wait(for: [XCTestExpectation(description: "settle")], timeout: 1.5)
         capture(app, name: "audit " + screen)
-        let homeTab = app.buttons["beta.tab.home"]
-        let tabBarTop = homeTab.exists && homeTab.isHittable ? homeTab.frame.minY : nil
-        var issues: [String] = [], known: [String] = [], textSize = 0
-        do {
-            try app.performAccessibilityAudit { issue in
-                let text = "\(issue.auditType.rawValue) \(issue.compactDescription) — \(issue.element?.label ?? "no element")"
-                if issue.auditType == .dynamicType { textSize += 1 }
-                else if Self.knownAuditReport(screen, issue.auditType, issue.element?.label) { known.append(text) }
-                else if issue.auditType == .contrast, let tabBarTop, let element = issue.element,
-                        Self.cutOffByTabBar(element, tabBarTop: tabBarTop) { known.append(text) }
-                // Friends uses "Friends" for its title and a section header; the frame says which.
-                else { issues.append(text + (issue.element.map { " at \($0.frame.integral)" } ?? "")) }
-                return true
+        let homeTab = app.tabBars.buttons["Home"]
+        let coveredFrom = homeTab.exists && homeTab.isHittable ? app.tabBars.firstMatch.frame.minY - Self.tabBarFade : nil
+        func covered(_ element: XCUIElement?) -> Bool {
+            guard let coveredFrom, let element else { return false }
+            return Self.coveredByTabBar(element.label, element.frame, from: coveredFrom)
+        }
+        var reports: [XCUIAccessibilityAuditIssue] = [], issues: [String] = [], known: [String] = [], textSize = 0
+        do { try app.performAccessibilityAudit { reports.append($0); return true } }
+        catch { issues.append("audit could not run: \(error)") }
+        // The audit can't always name covered text, so it reports some of it
+        // without an element. Each covered text accounts for one report at most.
+        let contrast = reports.filter { $0.auditType == .contrast }
+        var unnamedCovered = 0
+        if let coveredFrom, contrast.contains(where: { $0.element == nil }) {
+            unnamedCovered = Self.coveredTexts(app, from: coveredFrom) - contrast.filter { covered($0.element) }.count
+        }
+        for issue in reports {
+            let text = "\(issue.auditType.rawValue) \(issue.compactDescription) — \(issue.element?.label ?? "no element")"
+            if issue.auditType == .dynamicType { textSize += 1 }
+            else if Self.knownAuditReport(screen, issue.auditType, issue.element?.label) { known.append(text) }
+            else if issue.auditType == .contrast, covered(issue.element) { known.append(text) }
+            else if issue.auditType == .contrast, issue.element == nil, unnamedCovered > 0 {
+                unnamedCovered -= 1; known.append(text + ", with text under the tab bar")
             }
-        } catch { issues.append("audit could not run: \(error)") }
+            // Friends uses "Friends" for its title and a section header; the frame says which.
+            else { issues.append(text + (issue.element.map { " at \($0.frame.integral)" } ?? "")) }
+        }
         let note = XCTAttachment(string: "\(screen): \(textSize) fixed-size text elements. Recorded, not failed: "
                                  + known.joined(separator: "; "))
         note.name = "audit notes " + screen; note.lifetime = .keepAlways; add(note)
@@ -737,11 +790,25 @@ final class LiveDesignUITests: XCTestCase {
         }
     }
 
-    /// A tab's scrolling area ends at the tab bar. Text that runs into the bar
-    /// is cut off or hidden, so the audit reads the bar, not the text. The tab
-    /// labels themselves still count, and a sheet over the bar turns this off.
-    private static func cutOffByTabBar(_ element: XCUIElement, tabBarTop: CGFloat) -> Bool {
-        !["Home", "Challenges", "You"].contains(element.label) && element.frame.maxY > tabBarTop
+    /// A tab's content scrolls under the floating tab bar, and iOS 26 fades it
+    /// in a band above the bar (65 points on an iPhone 17 Pro with iOS 26.5).
+    /// Text that runs into the band or under the bar is faded, blurred or
+    /// hidden, so the audit reads the bar, not the text. The tab labels
+    /// themselves still count, and a sheet over the bar turns this off.
+    private static let tabBarFade: CGFloat = 72
+    private static func coveredByTabBar(_ label: String, _ frame: CGRect, from top: CGFloat) -> Bool {
+        !["Home", "Challenges", "You"].contains(label) && frame.maxY > top
+    }
+    /// On-screen texts that the bar or its fade covers, from one snapshot.
+    private static func coveredTexts(_ app: XCUIApplication, from top: CGFloat) -> Int {
+        guard let screen = try? app.snapshot() else { return 0 }
+        var count = 0, nodes = [screen]
+        while let node = nodes.popLast() {
+            if node.elementType == .staticText, node.frame.minY < screen.frame.maxY,
+               coveredByTabBar(node.label, node.frame, from: top) { count += 1 }
+            nodes += node.children
+        }
+        return count
     }
 
     /// XCUITest subscripts reject identifiers over 128 characters.
@@ -772,7 +839,7 @@ final class LiveDesignUITests: XCTestCase {
                                "-AppleLanguages", "(en)", "-AppleLocale", "en_US"] + extra
         if let textSize { app.launchArguments += ["-UIPreferredContentSizeCategoryName", textSize] }
         app.launch()
-        XCTAssertTrue(app.buttons["beta.tab.home"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.tabBars.buttons["Home"].waitForExistence(timeout: 10))
         return app
     }
 

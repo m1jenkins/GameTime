@@ -830,9 +830,12 @@ struct FriendUsernameField: View {
 struct FriendsNoticeToast: ViewModifier {
     let friends: FriendsStore?
     var showsRequestNotice = true
+    /// The system tab bar keeps pages in other tabs alive. Only a page on
+    /// screen shows the notice, so a hidden copy can't clear it early.
+    @State private var onScreen = false
     func body(content: Content) -> some View {
         content.overlay(alignment: .bottom) {
-            if let text = friends?.notice, showsRequestNotice || !text.hasPrefix("Request sent.") {
+            if onScreen, let text = friends?.notice, showsRequestNotice || !text.hasPrefix("Request sent.") {
                 HStack(spacing: 8) {
                     Image(systemName: "checkmark").font(.system(size: 14, weight: .bold)).accessibilityHidden(true)
                     Text(text).liveFont(14, weight: .medium).fixedSize(horizontal: false, vertical: true)
@@ -849,6 +852,8 @@ struct FriendsNoticeToast: ViewModifier {
                 }
             }
         }
+        .onAppear { onScreen = true }
+        .onDisappear { onScreen = false }
     }
 }
 
@@ -884,7 +889,7 @@ struct InviteAddFriendRow: View {
                     }
                     FriendsMessage(text: message.text, warning: message.warning)
                     if case .found(let person, .incoming)? = model.outcome, model.accepted != person.id {
-                        Button("Accept") { Task { await model.answer(.accept, person, in: friends) } }
+                        Button("Accept") { Task { await model.answer(.accept, person, in: friends); friends.clearNotice() } }
                             .buttonStyle(LivePillButtonStyle(kind: .filled)).disabled(!friends.canAct)
                             .accessibilityLabel("Accept \(person.displayName)’s request")
                     }
@@ -902,6 +907,9 @@ struct InviteAddFriendRow: View {
         focused = false
         await model.find(in: friends)
         if case .found(let person, .none)? = model.outcome { await model.send(person, in: friends) }
+        // The line under the field confirms it, and creation shows no toast,
+        // so Home mustn't confirm it again once creation closes.
+        friends.clearNotice()
     }
 
     private var message: (text: String, warning: Bool) {

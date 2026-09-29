@@ -1,4 +1,5 @@
 #if DEBUG
+import GameTimeCore
 import XCTest
 
 @testable import GameTime
@@ -11,9 +12,9 @@ import XCTest
     private var invitation: ChallengeV1 { LiveDesignFixtureClient.seedRow(LiveDesignFixtures.invitationID)! }
 
     private func copy(_ row: ChallengeV1, policy: String? = nil, status: String? = nil,
-                      members: [ChallengeV1.Member]? = nil) -> ChallengeV1 {
+                      members: [ChallengeV1.Member]? = nil, config: ChallengeV1.Window? = nil) -> ChallengeV1 {
         .init(sourcePolicyVersion: row.sourcePolicyVersion, counts: row.counts, id: row.id, creatorId: row.creatorId,
-              policy: policy ?? row.policy, config: row.config, status: status ?? row.status, revision: row.revision,
+              policy: policy ?? row.policy, config: config ?? row.config, status: status ?? row.status, revision: row.revision,
               agreementVersion: row.agreementVersion, serverTime: row.serverTime, socialHidden: row.socialHidden,
               agreement: row.agreement, members: members ?? row.members, notice: row.notice, reviews: row.reviews, final: row.final)
     }
@@ -120,7 +121,8 @@ import XCTest
     func testOutcomeWordingFollowsTheHeadCount() {
         let pair = FloodlightChallengeFacts.outcomes(pair: true)
         XCTAssertEqual(pair.map(\.title), ["Both reach it", "One reaches it", "Both miss", "Couldn’t confirm"])
-        XCTAssertEqual(pair.map(\.short), ["Both stakes back", "They get both stakes", "No one collects", "Stakes back · Challenge won’t count"])
+        // A no-break space keeps "won’t count" on one line (Floodlight QA, Sep 28).
+        XCTAssertEqual(pair.map(\.short), ["Both stakes back", "They get both stakes", "No one collects", "Stakes back · Challenge won’t\u{00A0}count"])
         XCTAssertEqual(pair.last?.long, "If we can’t confirm a result from Apple Health, both stakes come back and the challenge won’t count.")
         let group = FloodlightChallengeFacts.outcomes(pair: false)
         XCTAssertEqual(group.map(\.title), ["Everyone reaches it", "Some reach it", "Everyone misses", "Couldn’t confirm"])
@@ -148,6 +150,44 @@ import XCTest
         XCTAssertEqual(seats.map(\.agreed), [true, false], "People who agreed sit first")
         XCTAssertEqual(seats.map(\.slot), [1, 0])
         XCTAssertEqual(FloodlightChallengeFacts.sourceFact(invitation), "Outdoor runs on Apple Watch")
+    }
+
+    /// Home's agree row names the last day to agree: the start is midnight in
+    /// the challenge's time zone. The time shows only when it matters.
+    func testHomeAgreeDeadlineNamesTheLastDayAndAddsTheTimeOnlyWhenItMatters() throws {
+        let pacific = try XCTUnwrap(TimeZone(identifier: "America/Los_Angeles"))
+        let central = try XCTUnwrap(TimeZone(identifier: "America/Chicago"))
+        // Newer date formats put a narrow no-break space before AM and PM.
+        func plain(_ text: String) -> String { text.replacingOccurrences(of: "\u{202F}", with: " ") }
+        func starting(_ start: String, zone: String) throws -> ChallengeV1 {
+            let first = try ChallengeInstant(start), end = first.date.addingTimeInterval(7 * 86_400)
+            return copy(invitation, config: .init(startDate: String(start.prefix(10)), days: 7, timezone: zone, amountCents: 2_000,
+                startsAt: first, endsAt: .init(date: end), syncBy: .init(date: end.addingTimeInterval(86_400)),
+                correctionsBy: .init(date: end.addingTimeInterval(172_800)), noticeDue: .init(date: end.addingTimeInterval(259_200))))
+        }
+        // October runs starts at midnight Pacific on Monday, September 28.
+        XCTAssertEqual(HomeActionRows.deadline(invitation, viewer: pacific).short, "Agree by Sun, Sep 27")
+        XCTAssertEqual(HomeActionRows.deadline(invitation, viewer: pacific).spoken, "Agree by Sunday, September 27")
+        // Your Sunday ends before Pacific's, so the day alone is safe.
+        XCTAssertEqual(HomeActionRows.deadline(invitation, viewer: central).short, "Agree by Sun, Sep 27")
+        // Your Sunday would run past a Central midnight: say the time and zone.
+        let centralStart = try starting("2026-09-28T00:00:00-05:00", zone: "America/Chicago")
+        XCTAssertEqual(HomeActionRows.deadline(centralStart, viewer: central).short, "Agree by Sun, Sep 27")
+        XCTAssertEqual(plain(HomeActionRows.deadline(centralStart, viewer: pacific).short), "Agree by Sun, Sep 27, 11:59 PM Central Time")
+        XCTAssertEqual(plain(HomeActionRows.deadline(centralStart, viewer: pacific).spoken),
+                       "Agree by Sunday, September 27 at 11:59 PM Central Time")
+        // A start that isn't midnight needs its time.
+        let morning = try starting("2026-09-28T09:00:00-07:00", zone: "America/Los_Angeles")
+        XCTAssertEqual(plain(HomeActionRows.deadline(morning, viewer: pacific).short), "Agree by Mon, Sep 28, 8:59 AM")
+    }
+
+    /// The challenge's Health card before you connect (Floodlight QA, Sep 28).
+    func testHealthCardBeforeConnectingNamesTheActivity() {
+        XCTAssertEqual(ChallengeHealthCopy.notConnectedCardTitle, "Apple Health isn’t connected")
+        XCTAssertEqual(ChallengeHealthCopy.notConnectedCardBody(.runningMillimeters), "Connect to check your runs. You can keep browsing without it.")
+        XCTAssertEqual(ChallengeHealthCopy.notConnectedCardBody(.steps), "Connect to check your steps. You can keep browsing without it.")
+        XCTAssertEqual(ChallengeHealthCopy.notConnectedCardBody(.exerciseSeconds),
+                       "Connect to check your activity minutes. You can keep browsing without it.")
     }
 }
 #endif

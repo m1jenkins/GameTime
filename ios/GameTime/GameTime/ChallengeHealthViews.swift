@@ -10,6 +10,17 @@ enum ChallengeHealthCopy {
     /// challenge can't take a replacement. Refreshing can't change it.
     static let notSaved = "We couldn’t save this update because this challenge had stopped taking activity. If your saved score is wrong when results arrive, ask us to review it before the review deadline."
     static let notSavedTitle = "Last update not saved"
+    /// COPY.md "Apple Health not connected, on a challenge's Health card": the
+    /// Floodlight card's heading and body. Its button says "Connect".
+    static let notConnectedCardTitle = "Apple Health isn’t connected"
+    static func notConnectedCardBody(_ metric: ChallengeHealthMetric) -> String {
+        let activity = switch metric {
+        case .steps: "steps"
+        case .exerciseSeconds: "activity minutes"
+        case .runningMillimeters, .timedRunElapsedSeconds: "runs"
+        }
+        return "Connect to check your \(activity). You can keep browsing without it."
+    }
     static func title(_ state: ChallengeHealthFlowStore.State) -> String {
         state.notSaved ? notSavedTitle : title(state.readiness)
     }

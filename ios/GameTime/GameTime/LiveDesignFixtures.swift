@@ -22,6 +22,11 @@ enum LiveDesignFixtures {
     static let notSavedID = UUID(uuidString: "a1000000-0000-4000-8000-000000000007")!
     /// Adds a steps goal past its deadline whose saved update the server will never take.
     static var healthNotSaved: Bool { enabled && ProcessInfo.processInfo.arguments.contains("--fixture-health-not-saved") }
+    /// This phone hasn't connected Apple Health, so September runs has no saved
+    /// update of yours: the app reads and sends activity only once you connect.
+    /// Use this for the runs goal's Health card, not `--fixture-health-not-saved`,
+    /// which connects only Steps while your run shows as saved a minute ago.
+    static var healthNotConnected: Bool { enabled && ProcessInfo.processInfo.arguments.contains("--fixture-health-not-connected") }
     static let now = try! ChallengeInstant("2026-09-22T09:41:00-07:00")
     static let profile = UserProfile(id: actorID, handle: "alexlee", displayName: "Alex Lee", timezone: "America/Los_Angeles")
 
@@ -341,7 +346,7 @@ final class LiveDesignFixtureClient: ChallengeV1Client {
         }
         return [
             row(f.activeID, start: "2026-09-21", policy: "friend_distance_goal_v1", status: "active", members: [
-                member(f.actorID, target: 20_000_000, value: 6_400_000, now: now),
+                member(f.actorID, target: 20_000_000, value: LiveDesignFixtures.healthNotConnected ? nil : 6_400_000, now: now),
                 member(f.samID, target: 20_000_000, value: 7_800_000, now: now),
                 member(f.jordanID, target: 15_000_000, value: 1_200_000, now: now),
                 member(f.priyaID, target: 10_000_000, value: 10_000_000, now: now)]),
@@ -366,11 +371,13 @@ final class LiveDesignFixtureClient: ChallengeV1Client {
 }
 
 extension LiveDesignFixtures {
-    /// Stub Health clients for `--fixture-health-not-saved` only. Nothing reads
-    /// Apple Health, signs or leaves the phone: one update saved before the
-    /// deadline is refused the way the server refuses what it will never save.
+    /// Stub Health clients for `--fixture-health-not-saved` and
+    /// `--fixture-health-not-connected` only. Nothing reads Apple Health, signs
+    /// or leaves the phone. Not saved: one update saved before the deadline is
+    /// refused the way the server refuses what it will never save. Not
+    /// connected: no source is connected and nothing is waiting to send.
     static func healthDependencies() -> ChallengeHealthFlowDependencies? {
-        guard healthNotSaved, let row = LiveDesignFixtureClient.seedRow(notSavedID) else { return nil }
+        guard healthNotSaved || healthNotConnected else { return nil }
         let folder = FileManager.default.temporaryDirectory.appendingPathComponent("live-design-health-" + UUID().uuidString)
         let session = WeeklyClientSession(actorID: actorID, identity: "live-design")
         let coordinator = ChallengeHealthTransportCoordinator(uploadStore: .init(directory: folder.appendingPathComponent("upload")),
@@ -382,17 +389,20 @@ extension LiveDesignFixtures {
             binding: { session }, sign: { _, _ in throw ChallengeV1Error.unavailable },
             send: { _, _ in throw ChallengeHealthReadinessClientError.unavailable })
         let cache = ChallengeHealthComparisonCache(directory: folder.appendingPathComponent("comparison"))
-        do {
-            let binding = try ChallengeHealthBindingMapper.agreement(row, actor: actorID)
-            let observed = ChallengeHealthFlowStore.microseconds(row.config.endsAt.date.addingTimeInterval(-3600))
-            let saved = try ChallengeHealthUploadRequest(binding: binding, requestID: UUID(), revision: 1, previousRevision: nil,
-                replacement: .value(ChallengeHealthValue(metric: .steps, integerValue: 51_200)),
-                observedAtMicroseconds: observed, queriedThroughMicroseconds: observed)
-            var journal = ChallengeHealthUploadJournal(actorID: actorID)
-            try journal.enqueue(ChallengeHealthSignedUpload(privateAccountRequest: saved))
-            try coordinator.uploadStore.save(journal)
-            try cache.connect(actor: actorID, source: "apple_watch_steps_v1")
-        } catch { return nil }
+        if healthNotSaved {
+            guard let row = LiveDesignFixtureClient.seedRow(notSavedID) else { return nil }
+            do {
+                let binding = try ChallengeHealthBindingMapper.agreement(row, actor: actorID)
+                let observed = ChallengeHealthFlowStore.microseconds(row.config.endsAt.date.addingTimeInterval(-3600))
+                let saved = try ChallengeHealthUploadRequest(binding: binding, requestID: UUID(), revision: 1, previousRevision: nil,
+                    replacement: .value(ChallengeHealthValue(metric: .steps, integerValue: 51_200)),
+                    observedAtMicroseconds: observed, queriedThroughMicroseconds: observed)
+                var journal = ChallengeHealthUploadJournal(actorID: actorID)
+                try journal.enqueue(ChallengeHealthSignedUpload(privateAccountRequest: saved))
+                try coordinator.uploadStore.save(journal)
+                try cache.connect(actor: actorID, source: "apple_watch_steps_v1")
+            } catch { return nil }
+        }
         return ChallengeHealthFlowDependencies(coordinator: coordinator, uploads: uploads, readiness: readiness, cache: cache,
             permission: LiveDesignHealthPermission(), reader: { _, _ in LiveDesignHealthReader() },
             adapter: ChallengeHealthBindingMapper.adapter, now: { now.date })

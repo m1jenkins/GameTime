@@ -98,6 +98,24 @@ import XCTest
         try await Task.sleep(for: .milliseconds(250))
         return try await captureMountedSignal(window, controller: host, name: name, test: self)
     }
+    /// Floodlight QA, September 28: "Apple Health isn't connected" beside a
+    /// fresh update of yours came from a screenshot fixture. Before you
+    /// connect, a refresh reads nothing and sends nothing, so this phone can't
+    /// save an update of yours.
+    func testBeforeConnectingARefreshReadsAndSendsNothing() async throws {
+        let h = try FlowHarness(); defer { h.remove() }
+        let id = try h.addActivity(policy: "friend_distance_goal_v1")
+        await h.flow.refresh(id)
+        XCTAssertEqual(h.flow.states[id]?.readiness, .notConnected)
+        XCTAssertTrue(h.requests.isEmpty, "Nothing is read from Apple Health")
+        XCTAssertTrue(h.uploads.isEmpty, "Nothing is sent")
+        XCTAssertNil(h.client.rows[id]?.own(h.actor)?.fact, "No update of yours is saved")
+        let source = try XCTUnwrap(ChallengeHealthBindingMapper.selectedSource(.distance))
+        try h.cache.connect(actor: h.actor, source: source.identifier)
+        await h.flow.refresh(id)
+        XCTAssertEqual(h.uploads.count, 1, "Once you connect, the same refresh sends your update")
+        XCTAssertNotNil(h.client.rows[id]?.own(h.actor)?.fact)
+    }
     func testReceivedLeaderboardsUseAllFourAdaptersAndKeepMissingScoresUnknown() async throws {
         for metric in ChallengeV1Policy.Metric.allCases {
             let h = try FlowHarness(); defer { h.remove() }

@@ -1071,7 +1071,7 @@ final class GameTimeUITests: XCTestCase {
         bringIntoView(back, in: page)
         back.tap()
         XCTAssertTrue(page.waitForNonExistence(timeout: 5))
-        app.buttons["beta.tab.you"].waitAndTap()
+        app.tabBars.buttons["You"].waitAndTap()
         app.buttons["profile.settings"].waitAndTap()
         let history = app.buttons["settings.personal-history"]
         XCTAssertTrue(history.waitForExistence(timeout: 5))

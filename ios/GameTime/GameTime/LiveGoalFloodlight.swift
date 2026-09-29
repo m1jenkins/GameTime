@@ -166,7 +166,8 @@ enum FloodlightChallengeFacts {
             .init(kind: .all, title: "Both reach it", short: "Both stakes back", long: "You each get your stake back after results are final."),
             .init(kind: .some, title: "One reaches it", short: "They get both stakes", long: "They get their stake back plus the missed one."),
             .init(kind: .none, title: "Both miss", short: "No one collects", long: "Neither stake comes back. No one collects the pot."),
-            .init(kind: .unconfirmed, title: "Couldn’t confirm", short: "Stakes back · Challenge won’t count",
+            // A no-break space keeps "won’t count" on one line.
+            .init(kind: .unconfirmed, title: "Couldn’t confirm", short: "Stakes back · Challenge won’t\u{00A0}count",
                   long: "If we can’t confirm a result from Apple Health, both stakes come back and the challenge won’t count.")
         ] : [
             .init(kind: .all, title: "Everyone reaches it", short: "All stakes back", long: "Everyone gets their stake back after results are final."),
@@ -354,16 +355,10 @@ struct FloodlightChallengePage: View {
                 .accessibilityElement(children: .combine)
             }.buttonStyle(.plain)
             Button("Full rules", action: rules).buttonStyle(FloodlightRowButtonStyle()).accessibilityIdentifier("live.goal.rules")
-            LiveActionGroup(spacing: 10) {
-                if health == nil {
-                    Button(refreshing ? "Refreshing…" : "Refresh activity", action: refresh)
-                        .buttonStyle(FloodlightCalmButtonStyle(height: 48)).disabled(refreshing)
-                        .accessibilityIdentifier("live.goal.refresh")
-                }
-                Button("Leave challenge", action: leave)
-                    .buttonStyle(FloodlightCalmButtonStyle(height: 48)).disabled(!canAct)
-                    .accessibilityIdentifier("beta.leave")
-            }
+            // A quiet way out at the end of the list, never red or a pill. The
+            // update time on the person card refreshes, so there's no Refresh pill.
+            Button("Leave challenge", action: leave).buttonStyle(FloodlightQuietButtonStyle()).disabled(!canAct)
+                .accessibilityIdentifier("beta.leave")
             recovery
         }
     }
@@ -406,8 +401,9 @@ struct FloodlightChallengePage: View {
                             Text(LiveChallengePresentation.remaining(row, actor: person.actorId)).floodlightFont(13, weight: .medium).foregroundStyle(Floodlight.muted)
                         }
                         if !typeSize.isAccessibilitySize { Spacer(minLength: 0) }
+                        // The update time is the refresh control.
                         if let sync = FloodlightChallengeFacts.syncTime(row, person, actor: actor) {
-                            FloodlightSyncTime(short: sync.short, spoken: sync.spoken, late: sync.late)
+                            FloodlightSyncTime(short: sync.short, spoken: sync.spoken, late: sync.late, refreshing: refreshing, refresh: refresh)
                         }
                     }
                 }
@@ -837,17 +833,20 @@ struct FloodlightHealthCard: View {
     let refresh: () -> Void
     var body: some View {
         let state = flow.state(for: binding)
+        let notConnected = state.readiness == .notConnected && !state.notSaved
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 10) {
                 Image(systemName: "heart.text.clipboard").font(.system(size: 16)).foregroundStyle(Floodlight.accent)
                     .frame(width: 34, height: 34).background(RoundedRectangle(cornerRadius: 11).fill(Floodlight.well))
                     .overlay(RoundedRectangle(cornerRadius: 11).strokeBorder(Floodlight.wellEdge, lineWidth: 1))
                     .accessibilityHidden(true)
-                Text(ChallengeHealthCopy.title(state)).floodlightFont(15.5, weight: .semibold).foregroundStyle(Floodlight.ink)
+                Text(notConnected ? ChallengeHealthCopy.notConnectedCardTitle : ChallengeHealthCopy.title(state))
+                    .floodlightFont(15.5, weight: .semibold).foregroundStyle(Floodlight.ink)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("beta.health.state")
             }
             Text(state.notSaved ? ChallengeHealthCopy.notSaved
+                 : notConnected ? ChallengeHealthCopy.notConnectedCardBody(binding.metric)
                  : ChallengeHealthCopy.explanation(state.readiness, timed: binding.metric == .timedRunElapsedSeconds, readiness: false))
                 .floodlightFont(13.5, weight: .medium).foregroundStyle(Floodlight.muted).fixedSize(horizontal: false, vertical: true)
             if state.pendingDelivery {
@@ -857,13 +856,14 @@ struct FloodlightHealthCard: View {
             if let message = state.message {
                 Text(message).floodlightFont(13.5, weight: .medium).foregroundStyle(Floodlight.ink).fixedSize(horizontal: false, vertical: true)
             }
-            if state.readiness == .notConnected && !state.notSaved {
-                Button("Connect Apple Health") {
+            if notConnected {
+                Button("Connect") {
                     Task {
                         await flow.checkReadiness(binding, connect: true)
                         await flow.refresh(binding.challengeID)
                     }
-                }.buttonStyle(FloodlightCalmButtonStyle(height: 48)).accessibilityIdentifier("beta.health.connect")
+                }.buttonStyle(FloodlightCalmButtonStyle(height: 48))
+                    .accessibilityLabel("Connect Apple Health").accessibilityIdentifier("beta.health.connect")
             } else if !state.notSaved {
                 Button(refreshing ? "Refreshing…" : "Refresh activity", action: refresh)
                     .buttonStyle(FloodlightCalmButtonStyle(height: 48)).disabled(refreshing)

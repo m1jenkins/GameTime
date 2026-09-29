@@ -36,39 +36,46 @@ struct LiveChallengeShell: View {
     @State private var filter = "All"
     @State private var initialRouteApplied = false
 
-    private var selectedTab: some View {
-        Group {
-            switch selection {
-            case 0:
+    /// The system tab bar: on iOS 26 it's Liquid Glass floating over the
+    /// content, which scrolls underneath; earlier systems get the solid bar
+    /// `SignalAppearance` sets up. Tapping the open tab again goes back to
+    /// its first page.
+    private var tabs: some View {
+        TabView(selection: Binding(get: { selection }, set: { index in
+            if index == selection {
+                if index == 0 { homePath = [] }
+                if index == 1 { libraryPath = [] }
+                if index == 2 { recordPath = [] }
+            }
+            selection = index
+        })) {
+            Tab("Home", systemImage: "house", value: 0) {
                 NavigationStack(path: $homePath) {
                     LiveHomeView(store: store, profile: profile, serviceAvailable: serviceAvailable,
                                  viewGoal: { homePath.append($0) }, showRecord: { selection = 2 },
                                  create: { create = true }, library: { selection = 1 })
                         .navigationDestination(for: UUID.self) { LiveGoalDetail(store: store, id: $0) }
                 }
-            case 1:
+            }
+            Tab("Challenges", systemImage: "flag", value: 1) {
                 NavigationStack(path: $libraryPath) {
                     LiveLibraryView(store: store, filter: $filter, serviceAvailable: serviceAvailable,
                                     create: { create = true }, entry: { entry = true }, open: { libraryPath.append($0) })
                         .navigationDestination(for: UUID.self) { LiveGoalDetail(store: store, id: $0) }
                 }
-            default:
+            }
+            Tab("You", systemImage: "person", value: 2) {
                 NavigationStack(path: $recordPath) {
                     LiveRecordView(store: store, profile: profile, accountActor: accountActor ?? store.actor,
                                    settings: { settings = true })
                 }
             }
         }
+        .tint(SignalTheme.accent)
     }
 
     private var presentedShell: some View {
-        // The opaque bar sits below the content rather than over it. Overlaid,
-        // rows scrolled beneath it still answered accessibility hit tests
-        // where the bar was drawn, so a tap meant for a hidden row hit a tab.
-        VStack(spacing: 0) {
-            selectedTab.tint(SignalTheme.accent)
-            tabBar
-        }
+        tabs
         .background(SignalTheme.canvas.ignoresSafeArea())
         // The shell follows the phone's appearance. Creation, Settings (with
         // Personal history) and the invitation-link sheet have no dark design
@@ -136,39 +143,6 @@ struct LiveChallengeShell: View {
         .environment(\.challengeInvitationLinks, invitation.links)
     }
 
-    private var tabBar: some View {
-        HStack(spacing: 0) {
-            tab(0, "Home", "house", "house.fill")
-            tab(1, "Challenges", "flag", "flag")
-            tab(2, "You", "person", "person")
-        }
-        .padding(.horizontal, 11).padding(.top, 3).padding(.bottom, 4)
-        .background(Floodlight.bar.ignoresSafeArea(edges: .bottom))
-        .overlay(alignment: .top) { Rectangle().fill(Floodlight.barEdge).frame(height: 1) }
-    }
-    /// Floodlight's tab bar: the active tab's icon in the accent and its label in
-    /// ink, the others in Faint.
-    private func tab(_ index: Int, _ label: String, _ icon: String, _ selectedIcon: String) -> some View {
-        Button {
-            if selection == index {
-                if index == 0 { homePath = [] }
-                if index == 1 { libraryPath = [] }
-                if index == 2 { recordPath = [] }
-            }
-            selection = index
-        } label: {
-            VStack(spacing: 5) {
-                Image(systemName: selection == index ? selectedIcon : icon).font(.system(size: 23, weight: .regular))
-                    .foregroundStyle(selection == index ? Floodlight.accent : Floodlight.faint)
-                Text(label).floodlightFont(10, weight: .semibold)
-                    .foregroundStyle(selection == index ? Floodlight.ink : Floodlight.faint)
-                    .lineLimit(1).minimumScaleFactor(0.65)
-                    .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
-            }.frame(maxWidth: .infinity, minHeight: 44)
-                .contentShape(Rectangle())
-        }.buttonStyle(.plain).accessibilityIdentifier("beta.tab." + label.lowercased())
-            .accessibilityAddTraits(selection == index ? .isSelected : [])
-    }
     private func applyInitialRoute() {
         #if DEBUG
         guard !initialRouteApplied, LiveDesignFixtures.enabled, !store.challenges.isEmpty else { return }

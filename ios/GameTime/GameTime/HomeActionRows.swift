@@ -71,8 +71,10 @@ struct HomeActionRows: View {
     @ViewBuilder private func row(_ item: Item) -> some View {
         switch item {
         case .agree(let row):
+            let deadline = Self.deadline(row)
             line(glyph: "calendar", title: "Agree to " + LiveChallengePresentation.title(row),
-                 detail: "Before " + Self.deadline(row), urgent: true) {
+                 detail: deadline.short, spoken: deadline.spoken) {
+                // Home's one blue action.
                 Button("Review") { viewGoal(row.id) }.buttonStyle(LivePillButtonStyle(kind: .filled))
                     .accessibilityLabel("Review \(LiveChallengePresentation.title(row))")
             }
@@ -80,10 +82,10 @@ struct HomeActionRows: View {
             line(person: person, detail: "Friend request") {
                 LiveActionGroup(spacing: 6) {
                     Button("Decline") { Task { await friends?.perform(.decline, person: person) } }
-                        .buttonStyle(LivePillButtonStyle(kind: .quiet))
+                        .buttonStyle(LivePillButtonStyle(kind: .quiet, ink: Floodlight.ink))
                         .accessibilityLabel("Decline \(person.displayName)’s request")
                     Button("Accept") { Task { await friends?.perform(.accept, person: person) } }
-                        .buttonStyle(LivePillButtonStyle(kind: .filled))
+                        .buttonStyle(LivePillButtonStyle(kind: .quiet, ink: Floodlight.ink))
                         .accessibilityLabel("Accept \(person.displayName)’s request")
                 }.disabled(friends?.canAct != true)
             }
@@ -91,7 +93,7 @@ struct HomeActionRows: View {
             let from = row.members.first { $0.actorId == row.creatorId }?.username
             line(glyph: "envelope", title: LiveChallengePresentation.title(row),
                  detail: (from.map { "From \($0) · " } ?? "") + ChallengePresentation.dates(row)) {
-                Button("Review") { viewGoal(row.id) }.buttonStyle(LivePillButtonStyle(kind: .quiet))
+                Button("Review") { viewGoal(row.id) }.buttonStyle(LivePillButtonStyle(kind: .quiet, ink: Floodlight.ink))
                     .accessibilityLabel("Review \(LiveChallengePresentation.title(row))")
             }
         case .accepted(let person):
@@ -106,14 +108,14 @@ struct HomeActionRows: View {
         }
     }
 
-    private func line<Trailing: View>(glyph: String, title: String, detail: String, urgent: Bool = false,
+    private func line<Trailing: View>(glyph: String, title: String, detail: String, spoken: String? = nil,
                                       @ViewBuilder trailing: () -> Trailing) -> some View {
         stacked {
             HStack(spacing: 12) {
                 Image(systemName: glyph).font(.system(size: 16)).foregroundStyle(SignalTheme.accent)
                     .frame(width: 40, height: 40).background(SignalTheme.selection, in: Circle())
                     .accessibilityHidden(true)
-                text(title, detail, urgent: urgent)
+                text(title, detail, spoken: spoken)
             }
             trailing()
         }
@@ -138,23 +140,45 @@ struct HomeActionRows: View {
             .padding(.leading, 14).padding(.trailing, 10).padding(.vertical, 8).frame(minHeight: 64)
     }
 
-    private func text(_ title: String, _ detail: String, urgent: Bool = false) -> some View {
+    /// Floodlight 9.3's Next up type: the title in Barlow SemiBold 17 and
+    /// the detail in Barlow Regular 15, muted.
+    private func text(_ title: String, _ detail: String, spoken: String? = nil) -> some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text(title).liveFont(15, weight: .semibold).lineLimit(typeSize.isAccessibilitySize ? nil : 2)
-            Text(detail).liveFont(13, weight: urgent ? .medium : .regular)
-                .foregroundStyle(urgent ? SignalTheme.textPrimary : SignalTheme.textSecondary)
+            Text(title).floodlightFont(17, weight: .semibold).foregroundStyle(Floodlight.ink)
                 .lineLimit(typeSize.isAccessibilitySize ? nil : 2)
+            Text(detail).floodlightFont(15).foregroundStyle(Floodlight.muted)
+                .lineLimit(typeSize.isAccessibilitySize ? nil : 2)
+                .accessibilityLabel(spoken ?? detail)
         }
         .fixedSize(horizontal: false, vertical: true)
         .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .combine)
     }
 
-    /// Everyone on the roster agrees before the start, or it's cancelled.
-    static func deadline(_ row: ChallengeV1) -> String {
-        let zone = TimeZone(identifier: row.config.timezone) ?? .current
-        var day = Date.FormatStyle.dateTime.month(.abbreviated).day(); day.timeZone = zone
-        var time = Date.FormatStyle(date: .omitted, time: .shortened); time.timeZone = zone
-        return row.config.startsAt.date.formatted(day) + ", " + row.config.startsAt.date.formatted(time)
+    /// Everyone on the roster agrees before the start, or it's cancelled. The
+    /// start is midnight in the challenge's time zone, so the day before is the
+    /// last day: "Agree by Sun, Sep 27". The time shows only when it matters:
+    /// the start isn't at midnight, or your own day would end after the
+    /// deadline, which then also names the challenge's time zone.
+    static func deadline(_ row: ChallengeV1, viewer: TimeZone = .current) -> (short: String, spoken: String) {
+        let zone = TimeZone(identifier: row.config.timezone) ?? viewer
+        let start = row.config.startsAt.date
+        let last = start.addingTimeInterval(-60)
+        func format(_ template: String) -> String {
+            let formatter = DateFormatter(); formatter.timeZone = zone
+            formatter.setLocalizedDateFormatFromTemplate(template)
+            return formatter.string(from: last)
+        }
+        var calendar = Calendar(identifier: .gregorian); calendar.timeZone = zone
+        var yours = Calendar(identifier: .gregorian); yours.timeZone = viewer
+        // When that day ends on your own clock.
+        let yourDayEnds = yours.date(from: calendar.dateComponents([.year, .month, .day], from: last))
+            .flatMap { yours.date(byAdding: .day, value: 1, to: $0) } ?? start
+        guard calendar.startOfDay(for: start) != start || yourDayEnds > start else {
+            return ("Agree by " + format("EEEMMMd"), "Agree by " + format("EEEEMMMMd"))
+        }
+        let clock = format("jmm") + (zone.secondsFromGMT(for: last) == viewer.secondsFromGMT(for: last)
+            ? "" : " " + FloodlightInvitationPage.zoneName(zone.identifier))
+        return ("Agree by \(format("EEEMMMd")), \(clock)", "Agree by \(format("EEEEMMMMd")) at \(clock)")
     }
 }

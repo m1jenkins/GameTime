@@ -21,13 +21,13 @@ final class ChallengeV1UITests:XCTestCase {
         let opaqueLink = "gametime-beta://challenge-invite/" + String(repeating: "d", count: 64)
         app.open(try XCTUnwrap(URL(string: opaqueLink)))
         signIn.tap()
-        XCTAssertTrue(app.buttons["beta.tab.home"].waitForExistence(timeout: 15))
+        XCTAssertTrue(app.tabBars.buttons["Home"].waitForExistence(timeout: 15))
         XCTAssertFalse(app.otherElements["signal.service.closed"].exists)
         XCTAssertTrue(app.buttons["signal.existing-challenges"].exists)
         app.buttons["signal.existing-challenges"].tap()
         XCTAssertTrue(app.buttons["signal.existing.done"].waitForExistence(timeout: 10))
         app.buttons["signal.existing.done"].tap()
-        app.buttons["beta.tab.challenges"].tap()
+        app.tabBars.buttons["Challenges"].tap()
         XCTAssertEqual(app.textFields["Invitation link"].value as? String, opaqueLink)
         let age = app.switches["beta.age.toggle"]
         XCTAssertTrue(age.waitForExistence(timeout: 10))
@@ -62,7 +62,7 @@ final class ChallengeV1UITests:XCTestCase {
         let attachment = XCTAttachment(screenshot: app.screenshot())
         attachment.name = "Ordinary Signal shared-session history"
         attachment.lifetime = .keepAlways; add(attachment)
-        app.buttons["beta.tab.you"].tap()
+        app.tabBars.buttons["You"].tap()
         app.buttons["profile.settings"].tap()
         app.buttons["account-support.open"].tap()
         let signOut = app.buttons["account-support.sign-out"]
@@ -71,7 +71,7 @@ final class ChallengeV1UITests:XCTestCase {
         app.terminate()
         app.launch()
         XCTAssertTrue(signIn.waitForExistence(timeout: 10)); signIn.tap()
-        XCTAssertTrue(app.buttons["beta.tab.challenges"].waitForExistence(timeout: 15)); app.buttons["beta.tab.challenges"].tap()
+        XCTAssertTrue(app.tabBars.buttons["Challenges"].waitForExistence(timeout: 15)); app.tabBars.buttons["Challenges"].tap()
         XCTAssertEqual(app.textFields["Invitation link"].value as? String, opaqueLink, "Cold relaunch retains an unredeemed invitation")
     }
 
@@ -103,7 +103,7 @@ final class ChallengeV1UITests:XCTestCase {
         XCTAssertTrue(signIn.waitForExistence(timeout: 10))
         XCTAssertTrue(signIn.isEnabled)
         signIn.tap()
-        let you = app.buttons["beta.tab.you"]
+        let you = app.tabBars.buttons["You"]
         XCTAssertTrue(you.waitForExistence(timeout: 15))
         you.tap()
         let support = app.buttons["local-account-deletion.support"]
@@ -144,13 +144,13 @@ final class ChallengeV1UITests:XCTestCase {
         let email=app.textFields["beta.login.email"];XCTAssertTrue(email.waitForExistence(timeout:10));email.tap();email.typeText(actors[0]["email"]!)
         let password=app.secureTextFields["beta.login.password"];password.tap();password.typeText(config["password"] as! String)
         app.buttons["beta.login.submit"].tap()
-        XCTAssertTrue(app.buttons["beta.tab.home"].waitForExistence(timeout:15))
+        XCTAssertTrue(app.tabBars.buttons["Home"].waitForExistence(timeout:15))
         XCTAssertTrue(app.buttons["beta.home.create"].exists)
         XCTAssertTrue(app.staticTexts["beta.home.heading"].waitForExistence(timeout:5))
         XCTAssertEqual(app.staticTexts["beta.home.heading"].label, "GameTime")
-        app.buttons["beta.tab.challenges"].tap()
+        app.tabBars.buttons["Challenges"].tap()
         XCTAssertTrue(app.buttons["beta.create.open"].waitForExistence(timeout:5))
-        app.buttons["beta.tab.you"].tap()
+        app.tabBars.buttons["You"].tap()
         XCTAssertTrue(app.staticTexts["Fictional activity only"].waitForExistence(timeout:5))
         app.buttons["beta.signout"].tap()
         XCTAssertTrue(email.waitForExistence(timeout:10))
@@ -175,10 +175,10 @@ final class ChallengeV1UITests:XCTestCase {
         for _ in 0..<10 where !app.buttons["beta.login.submit"].isHittable { app.swipeUp() }
         XCTAssertTrue(app.buttons["beta.login.submit"].waitForExistence(timeout: 10))
         app.buttons["beta.login.submit"].tap()
-        XCTAssertTrue(app.buttons["beta.nav.menu"].waitForExistence(timeout: 2) || app.buttons["beta.tab.home"].waitForExistence(timeout: 15))
-        func chooseTab(_ key: String) {
+        XCTAssertTrue(app.buttons["beta.nav.menu"].waitForExistence(timeout: 2) || app.tabBars.buttons["Home"].waitForExistence(timeout: 15))
+        func chooseTab(_ label: String) {
             if app.buttons["beta.nav.menu"].exists { app.buttons["beta.nav.menu"].tap() }
-            app.buttons["beta.tab." + key].tap()
+            app.tabBars.buttons[label].tap()
         }
         // Ordinary app navigation, with fictional authenticated accounts. System
         // audit is preparation; it cannot establish human VoiceOver comprehension.
@@ -186,7 +186,7 @@ final class ChallengeV1UITests:XCTestCase {
         do {
             try app.performAccessibilityAudit()
         } catch { XCTFail("Unfiltered accessibility audit failed: \(error)") }
-        chooseTab("challenges")
+        chooseTab("Challenges")
         let age = app.switches["beta.age.toggle"]
         if age.waitForExistence(timeout: 2) {
             for _ in 0..<12 where !age.isHittable { app.swipeUp() }
@@ -235,14 +235,14 @@ final class ChallengeV1UITests:XCTestCase {
         XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: save)], timeout: 10), .completed)
         closeSavedCreation(app)
         XCTAssertTrue(create.waitForExistence(timeout: 10))
-        chooseTab("home")
+        chooseTab("Home")
         let card = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "beta.row.lobby_open.friend_steps_goal_v1.")).firstMatch
         // Home cards combine their readable values; Challenges rows have stable IDs.
         let snapshot = XCTAttachment(screenshot: app.screenshot()); snapshot.name = "Beta Home " + mode; snapshot.lifetime = .keepAlways; add(snapshot)
         do {
             try app.performAccessibilityAudit()
         } catch { XCTFail("Unfiltered accessibility audit failed: \(error)") }
-        chooseTab("challenges")
+        chooseTab("Challenges")
         for _ in 0..<10 where !card.isHittable { app.swipeUp() }
         XCTAssertTrue(card.isHittable); card.tap()
         do {
@@ -317,7 +317,7 @@ final class ChallengeV1UITests:XCTestCase {
             control.tap(); app.buttons[value].tap()
         }
         let signIn = app.buttons["beta.login.submit"]; XCTAssertTrue(signIn.waitForExistence(timeout: 10)); signIn.tap()
-        let challenges = app.buttons["beta.tab.challenges"]; XCTAssertTrue(challenges.waitForExistence(timeout: 15)); challenges.tap()
+        let challenges = app.tabBars.buttons["Challenges"]; XCTAssertTrue(challenges.waitForExistence(timeout: 15)); challenges.tap()
         let age = app.switches["beta.age.toggle"]
         if age.waitForExistence(timeout: 1) {
             age.coordinate(withNormalizedOffset: CGVector(dx: 0.94, dy: 0.5)).tap(); app.buttons["beta.age.submit"].tap()
@@ -366,7 +366,7 @@ final class ChallengeV1UITests:XCTestCase {
         closeSavedCreation(app)
         XCTAssertTrue(app.buttons["beta.create.open"].waitForExistence(timeout: 15))
         capture("personal-scheduled")
-        app.buttons["beta.tab.you"].tap(); capture("you")
+        app.tabBars.buttons["You"].tap(); capture("you")
         app.buttons["Privacy and terms"].tap(); capture("privacy-and-terms")
     }
     @MainActor private func touchJourney(_ counts: [Int]) async throws {
@@ -406,8 +406,8 @@ final class ChallengeV1UITests:XCTestCase {
             XCTAssertTrue(email.waitForExistence(timeout: 15)); enter(email, actors[i]["email"]!)
             enter(app.secureTextFields["beta.login.password"], config["password"] as! String)
             tap(app.buttons["beta.login.submit"])
-            XCTAssertTrue(app.buttons["beta.tab.challenges"].waitForExistence(timeout: 15))
-            app.buttons["beta.tab.challenges"].tap()
+            XCTAssertTrue(app.tabBars.buttons["Challenges"].waitForExistence(timeout: 15))
+            app.tabBars.buttons["Challenges"].tap()
             let age = app.switches["beta.age.toggle"]
             if age.waitForExistence(timeout: 1) {
                 age.coordinate(withNormalizedOffset: CGVector(dx: 0.94, dy: 0.5)).tap()
@@ -416,7 +416,7 @@ final class ChallengeV1UITests:XCTestCase {
             }
         }
         func logout() {
-            app.buttons["beta.tab.you"].tap(); tap(app.buttons["beta.signout"])
+            app.tabBars.buttons["You"].tap(); tap(app.buttons["beta.signout"])
             XCTAssertTrue(app.textFields["beta.login.email"].waitForExistence(timeout: 10))
         }
         func open(_ status: String) { tap(app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "beta.row." + status + ".friend_steps_goal_v1.")).firstMatch) }

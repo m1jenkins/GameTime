@@ -45,7 +45,7 @@ final class ChallengeHealthSignalUITests: XCTestCase {
         }
         let signIn = app.buttons["auth.local-substitute"]
         XCTAssertTrue(signIn.waitForExistence(timeout: 10)); signIn.tap()
-        let challenges = app.buttons["beta.tab.challenges"]
+        let challenges = app.tabBars.buttons["Challenges"]
         XCTAssertTrue(challenges.waitForExistence(timeout: 15)); challenges.tap()
         let age = app.switches["beta.age.toggle"]
         if age.waitForExistence(timeout: 2) {
