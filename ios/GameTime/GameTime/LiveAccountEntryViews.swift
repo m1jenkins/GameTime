@@ -222,12 +222,16 @@ struct LiveOnboardingView: View {
                             .liveFont(15).foregroundStyle(SignalTheme.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
                         VStack(alignment: .leading, spacing: 22) {
-                            profileField("Your name", text: $displayName, field: .name)
-                            profileField("Username", text: $handle, field: .handle)
+                            profileField("Your name", text: $displayName, field: .name).id(Field.name)
+                            VStack(alignment: .leading, spacing: dynamicTypeSize.isAccessibilitySize ? 8 : 24) {
+                                profileField("Username", text: $handle, field: .handle)
+                                Text("Pick carefully — you can’t change your username yet. Friends need it to send you a request.")
+                                    .liveFont(12).foregroundStyle(SignalTheme.textSecondary)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                            .padding(.bottom, dynamicTypeSize.isAccessibilitySize ? 8 : 0)
+                            .id(Field.handle)
                         }
-                        Text("Pick carefully — you can’t change your username yet. Friends need it to send you a request.")
-                            .liveFont(12).foregroundStyle(SignalTheme.textSecondary)
-                            .fixedSize(horizontal: false, vertical: true)
                         if let message = error(.general) {
                             Text(message).liveFont(13, weight: .medium).foregroundStyle(SignalTheme.danger)
                                 .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("onboarding.general.error")
@@ -251,10 +255,13 @@ struct LiveOnboardingView: View {
                     .scrollDismissesKeyboard(.interactively).toolbar(.hidden, for: .navigationBar)
                     .toolbar {
                         ToolbarItemGroup(placement: .keyboard) {
-                            Spacer()
-                            Button(focusedField == .name ? "Next" : "Done") {
-                                if focusedField == .name { focusedField = .handle } else { submit() }
-                            }.disabled(model.isMutating)
+                            // Native Next/Done keep these actions reachable without using keyboard space.
+                            if !dynamicTypeSize.isAccessibilitySize {
+                                Spacer()
+                                Button(focusedField == .name ? "Next" : "Done") {
+                                    if focusedField == .name { focusedField = .handle } else { submit() }
+                                }.disabled(model.isMutating)
+                            }
                         }
                     }
                     .onChange(of: focusedField) { _, _ in
@@ -285,8 +292,8 @@ struct LiveOnboardingView: View {
 
     private func revealFocusedField(using proxy: ScrollViewProxy) {
         guard dynamicTypeSize.isAccessibilitySize, let focusedField else { return }
-        // Center the whole field and helper, leaving clearance for the keyboard accessory.
-        proxy.scrollTo(focusedField, anchor: .center)
+        // The username target includes both explanatory texts below its input.
+        proxy.scrollTo(focusedField, anchor: .bottom)
     }
 
     private func profileField(_ title: String, text: Binding<String>, field: Field) -> some View {
@@ -296,7 +303,8 @@ struct LiveOnboardingView: View {
             HStack(spacing: 8) {
                 if field == .handle { Text("@").foregroundStyle(SignalTheme.textSecondary) }
                 TextField(title, text: text)
-                    .textContentType(field == .name ? .name : .username)
+                    // This username identifies you to friends; it is not a password sign-in.
+                    .textContentType(field == .name ? .name : nil)
                     .textInputAutocapitalization(field == .handle ? .never : .words)
                     .autocorrectionDisabled(field == .handle)
                     .submitLabel(field == .name ? .next : .done)
@@ -314,7 +322,6 @@ struct LiveOnboardingView: View {
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier(field == .name ? "onboarding.name.message" : "onboarding.username.message")
         }
-        .id(field)
     }
 
     private func error(_ field: OnboardingErrorField) -> String? {

@@ -817,20 +817,25 @@ final class LiveDesignUITests: XCTestCase {
                 name.typeText("\n")
                 let username = app.textFields["onboarding.username.input"]
                 let helper = app.staticTexts["onboarding.username.message"]
+                let caution = labeled(app.staticTexts, "Pick carefully — you can’t change your username yet. Friends need it to send you a request.")
+                XCTAssertTrue(caution.exists)
                 XCTAssertEqual(helper.label, "Username: 3–30 letters, numbers, or underscores; starts with a letter")
-                // The keyboard accessory is a separate toolbar above the keyboard's autofill row.
-                // Its Done button is not exposed as an accessibility element on this simulator.
+                // Include any accessory or autofill row in the keyboard's covered area.
                 @MainActor func keyboardBoundary() -> CGFloat? {
                     guard keyboard.exists else { return nil }
-                    return app.toolbars.allElementsBoundByIndex.map { $0.frame }
+                    let accessories = app.toolbars.allElementsBoundByIndex
+                        + app.otherElements.matching(identifier: "SystemInputAssistantView").allElementsBoundByIndex
+                    let tops = accessories.map { $0.frame }
                         .filter { $0.height > 0 && $0.minY > app.frame.minY && $0.maxY <= keyboard.frame.minY }
-                        .map(\.minY).min()
+                        .map(\.minY)
+                    return ([keyboard.frame.minY] + tops).min()
                 }
                 let visibleAboveKeyboard = NSPredicate { _, _ in
                     guard let bottom = keyboardBoundary() else { return false }
-                    return [username, helper].allSatisfy { element in
+                    let top = app.statusBars.firstMatch.exists ? app.statusBars.firstMatch.frame.maxY : app.frame.minY
+                    return [username, helper, caution].allSatisfy { element in
                         element.exists && element.frame.height > 0
-                            && element.frame.minY >= app.frame.minY
+                            && element.frame.minY >= top
                             && element.frame.maxY <= bottom
                     }
                 }
@@ -839,7 +844,7 @@ final class LiveDesignUITests: XCTestCase {
                     if focus == "tap" { name.tap(); username.tap() }
                     XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(
                         predicate: visibleAboveKeyboard, object: app)], timeout: 5), .completed,
-                                   "Username and its full helper must stay above the keyboard in \(mode), focus \(focus): input \(username.frame), helper \(helper.frame), keyboard \(keyboard.frame), accessory top \(String(describing: keyboardBoundary()))")
+                                   "Username, its full helper and Pick carefully must stay above the keyboard in \(mode), focus \(focus): input \(username.frame), helper \(helper.frame), caution \(caution.frame), keyboard \(keyboard.frame), accessory top \(String(describing: keyboardBoundary()))")
                 }
                 capture(app, name: "profile-" + mode)
             }
