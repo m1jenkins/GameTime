@@ -751,7 +751,7 @@ final class LiveDesignUITests: XCTestCase {
     }
 
     func testLargestTextKeepsOnboardingConsentAndExitReachable() {
-        continueAfterFailure = false
+        continueAfterFailure = true
         let app = XCUIApplication()
         app.launchArguments = ["--fixture-mode", "--fixture-onboarding", "--fixture-empty",
                                "-AppleLanguages", "(en)", "-AppleLocale", "en_US",
@@ -761,8 +761,26 @@ final class LiveDesignUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Before you start"].waitForExistence(timeout: 10))
         capture(app, name: "onboarding-largest-text")
         let proceed = app.buttons["onboarding.age.continue"]
+        let watch = labeled(app.staticTexts, "Your activity has to come from an Apple Watch that records to Apple Health on this iPhone. Activity recorded only by iPhone doesn’t count.")
+        XCTAssertTrue(watch.exists)
+        XCTAssertGreaterThan(watch.frame.height, 0)
+        XCTAssertFalse(watch.frame.intersects(proceed.frame),
+                       "The Apple Watch requirement must not sit behind Continue")
         XCTAssertFalse(proceed.isEnabled)
-        XCTAssertTrue(app.buttons["onboarding.age.under21"].isHittable)
+        let scroll = app.scrollViews.firstMatch
+        for _ in 0..<8 where watch.frame.maxY > scroll.frame.maxY {
+            scroll.coordinate(withNormalizedOffset: CGVector(dx: 0.8, dy: 0.7))
+                .press(forDuration: 0.01, thenDragTo: scroll.coordinate(withNormalizedOffset: CGVector(dx: 0.8, dy: 0.55)))
+        }
+        XCTAssertGreaterThanOrEqual(watch.frame.minY, scroll.frame.minY)
+        XCTAssertLessThanOrEqual(watch.frame.maxY, scroll.frame.maxY)
+        XCTAssertFalse(watch.frame.intersects(proceed.frame))
+        capture(app, name: "onboarding-watch-largest-text")
+        let exit = app.buttons["onboarding.age.under21"]
+        bring(app, exit); exit.tap()
+        let adults = app.alerts["GameTime is for people 21 and older"]
+        XCTAssertTrue(adults.waitForExistence(timeout: 5))
+        adults.buttons["Go back"].tap()
         let age = app.switches["onboarding.age.toggle"]
         bring(app, age)
         // XCTest may mark a partly visible switch as hittable even while the
@@ -772,9 +790,29 @@ final class LiveDesignUITests: XCTestCase {
         capture(app, name: "onboarding-age-control-largest-text")
         age.tap()
         XCTAssertTrue(proceed.isEnabled)
+        bring(app, proceed)
         proceed.tap()
-        XCTAssertTrue(app.textFields["onboarding.name.input"].waitForExistence(timeout: 5))
+        let name = app.textFields["onboarding.name.input"]
+        XCTAssertTrue(name.waitForExistence(timeout: 5))
         capture(app, name: "profile-largest-text")
+        let keyboard = app.keyboards.firstMatch
+        XCTAssertTrue(keyboard.waitForExistence(timeout: 5))
+        name.typeText("Alex Native")
+        name.typeText("\n")
+        let username = app.textFields["onboarding.username.input"]
+        let helper = app.staticTexts["onboarding.username.message"]
+        let visibleAboveKeyboard = NSPredicate { _, _ in
+            [username, helper].allSatisfy { element in
+                element.exists && element.frame.height > 0
+                    && element.frame.minY >= app.frame.minY
+                    && element.frame.maxY <= keyboard.frame.minY
+            }
+        }
+        XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(
+            predicate: visibleAboveKeyboard, object: app)], timeout: 5), .completed,
+                       "The focused username field and its helper must be visible above the keyboard: input \(username.frame), helper \(helper.frame), keyboard \(keyboard.frame)")
+        capture(app, name: "profile-username-largest-text")
+        username.typeText("alex_native")
     }
 
     /// Friends Phase 4: the system audit on every friends screen, at the

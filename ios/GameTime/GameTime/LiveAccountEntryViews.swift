@@ -141,6 +141,7 @@ struct LiveOnboardingView: View {
     @State private var ageConfirmed = false
     @State private var showingProfile = false
     @State private var under21 = false
+    @State private var keyboardVisible = false
     @FocusState private var focusedField: Field?
     private enum Field: Hashable { case name, handle }
 
@@ -173,23 +174,18 @@ struct LiveOnboardingView: View {
                     .padding(.top, 30).accessibilityIdentifier("onboarding.age.toggle")
                 Text("GameTime is only for people 21 and older.").liveFont(12)
                     .foregroundStyle(SignalTheme.textSecondary).padding(.top, 10).padding(.horizontal, 4)
+                if dynamicTypeSize.isAccessibilitySize {
+                    consentActions.padding(.top, 24)
+                }
             }.padding(.horizontal, SignalTheme.contentInset).padding(.bottom, 24)
         }
         .background(SignalTheme.canvas.ignoresSafeArea()).foregroundStyle(SignalTheme.textPrimary)
         .safeAreaInset(edge: .bottom, spacing: 0) {
-            VStack(spacing: 4) {
-                Button { showingProfile = true } label: {
-                    HStack(spacing: 10) { Text("Continue"); Image(systemName: "arrow.right").accessibilityHidden(true) }
-                }
-                .buttonStyle(LivePrimaryButtonStyle()).disabled(!ageConfirmed)
-                .accessibilityIdentifier("onboarding.age.continue")
-                Button { under21 = true } label: {
-                    Text("I’m under 21").liveFont(14, weight: .medium).foregroundStyle(SignalTheme.textSecondary)
-                        .frame(maxWidth: .infinity, minHeight: 44).contentShape(Rectangle())
-                }
-                .buttonStyle(.plain).accessibilityIdentifier("onboarding.age.under21")
+            if !dynamicTypeSize.isAccessibilitySize {
+                consentActions
+                    .padding(.horizontal, SignalTheme.contentInset).padding(.top, 12).padding(.bottom, 6)
+                    .background(SignalTheme.canvas)
             }
-            .padding(.horizontal, SignalTheme.contentInset).padding(.top, 12).padding(.bottom, 6).background(SignalTheme.canvas)
         }
         .alert("GameTime is for people 21 and older", isPresented: $under21) {
             Button("Sign out") { Task { await model.signOut() } }
@@ -200,69 +196,101 @@ struct LiveOnboardingView: View {
         .tint(SignalTheme.accent)
     }
 
+    private var consentActions: some View {
+        VStack(spacing: 4) {
+            Button { showingProfile = true } label: {
+                HStack(spacing: 10) { Text("Continue"); Image(systemName: "arrow.right").accessibilityHidden(true) }
+            }
+            .buttonStyle(LivePrimaryButtonStyle()).disabled(!ageConfirmed)
+            .accessibilityIdentifier("onboarding.age.continue")
+            Button { under21 = true } label: {
+                Text("I’m under 21").liveFont(14, weight: .medium).foregroundStyle(SignalTheme.textSecondary)
+                    .frame(maxWidth: .infinity, minHeight: 44).contentShape(Rectangle())
+            }
+            .buttonStyle(.plain).accessibilityIdentifier("onboarding.age.under21")
+        }
+    }
+
     private var profile: some View {
         NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 24) {
-                    LiveOnboardingSteps(current: 2).padding(.top, 16).padding(.bottom, -8)
-                    HStack {
-                        Text("Your profile").liveFont(28, weight: .bold).tracking(-1)
-                        Spacer()
-                        Image(systemName: "person.crop.circle").font(.system(size: 25, weight: .regular))
-                            .foregroundStyle(SignalTheme.textSecondary).accessibilityHidden(true)
-                    }.padding(.top, 16)
-                    Text("Add your name and the username friends will use to find you.")
-                        .liveFont(15).foregroundStyle(SignalTheme.textSecondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                    VStack(alignment: .leading, spacing: 22) {
-                        profileField("Your name", text: $displayName, field: .name)
-                        profileField("Username", text: $handle, field: .handle)
-                    }
-                    Text("Pick carefully — you can’t change your username yet. Friends need it to send you a request.")
-                        .liveFont(12).foregroundStyle(SignalTheme.textSecondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                    if let message = error(.general) {
-                        Text(message).liveFont(13, weight: .medium).foregroundStyle(SignalTheme.danger)
-                            .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("onboarding.general.error")
-                    }
-                    VStack(spacing: 12) {
-                        Button(model.isMutating ? "Saving profile…" : "Enter GameTime") { submit() }
-                            .buttonStyle(LivePrimaryButtonStyle())
-                            .disabled(model.isMutating || handle.isEmpty || displayName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                            .accessibilityIdentifier("onboarding.submit")
-                        Button("Use a different Apple account") {
-                            focusedField = nil
-                            Task { await model.signOut() }
-                        }.liveFont(14, weight: .medium).foregroundStyle(SignalTheme.textSecondary)
+            ScrollViewReader { proxy in
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 24) {
+                        LiveOnboardingSteps(current: 2).padding(.top, 16).padding(.bottom, -8)
+                        HStack {
+                            Text("Your profile").liveFont(28, weight: .bold).tracking(-1)
+                            Spacer()
+                            Image(systemName: "person.crop.circle").font(.system(size: 25, weight: .regular))
+                                .foregroundStyle(SignalTheme.textSecondary).accessibilityHidden(true)
+                        }.padding(.top, 16)
+                        Text("Add your name and the username friends will use to find you.")
+                            .liveFont(15).foregroundStyle(SignalTheme.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
-                            .multilineTextAlignment(.center)
-                            .frame(maxWidth: .infinity, minHeight: 44).disabled(model.isMutating)
-                            .accessibilityIdentifier("onboarding.use-different-account")
+                        VStack(alignment: .leading, spacing: 22) {
+                            profileField("Your name", text: $displayName, field: .name)
+                            profileField("Username", text: $handle, field: .handle)
+                        }
+                        Text("Pick carefully — you can’t change your username yet. Friends need it to send you a request.")
+                            .liveFont(12).foregroundStyle(SignalTheme.textSecondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                        if let message = error(.general) {
+                            Text(message).liveFont(13, weight: .medium).foregroundStyle(SignalTheme.danger)
+                                .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("onboarding.general.error")
+                        }
+                        VStack(spacing: 12) {
+                            Button(model.isMutating ? "Saving profile…" : "Enter GameTime") { submit() }
+                                .buttonStyle(LivePrimaryButtonStyle())
+                                .disabled(model.isMutating || handle.isEmpty || displayName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                                .accessibilityIdentifier("onboarding.submit")
+                            Button("Use a different Apple account") {
+                                focusedField = nil
+                                Task { await model.signOut() }
+                            }.liveFont(14, weight: .medium).foregroundStyle(SignalTheme.textSecondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .multilineTextAlignment(.center)
+                                .frame(maxWidth: .infinity, minHeight: 44).disabled(model.isMutating)
+                                .accessibilityIdentifier("onboarding.use-different-account")
+                        }
+                    }.padding(.horizontal, SignalTheme.contentInset).padding(.vertical, 24)
+                }.background(SignalTheme.canvas).foregroundStyle(SignalTheme.textPrimary)
+                    .scrollDismissesKeyboard(.interactively).toolbar(.hidden, for: .navigationBar)
+                    .toolbar {
+                        ToolbarItemGroup(placement: .keyboard) {
+                            Spacer()
+                            Button(focusedField == .name ? "Next" : "Done") {
+                                if focusedField == .name { focusedField = .handle } else { submit() }
+                            }.disabled(model.isMutating)
+                        }
                     }
-                }.padding(.horizontal, SignalTheme.contentInset).padding(.vertical, 24)
-            }.background(SignalTheme.canvas).foregroundStyle(SignalTheme.textPrimary)
-                .scrollDismissesKeyboard(.interactively).toolbar(.hidden, for: .navigationBar)
-                .toolbar {
-                    ToolbarItemGroup(placement: .keyboard) {
-                        Spacer()
-                        Button(focusedField == .name ? "Next" : "Done") {
-                            if focusedField == .name { focusedField = .handle } else { submit() }
-                        }.disabled(model.isMutating)
+                    .onChange(of: focusedField) { _, _ in
+                        if keyboardVisible { revealFocusedField(using: proxy) }
                     }
-                }
-                .onAppear { focusedField = displayName.isEmpty ? .name : .handle }
-                .onChange(of: displayName) { _, _ in model.clearOnboardingError() }
-                .onChange(of: handle) { _, _ in model.clearOnboardingError() }
-                .onChange(of: model.onboardingError) { _, error in
-                    guard let error else { return }
-                    SignalAccessibility.announce(error.message)
-                    switch error.field {
-                    case .name: focusedField = .name
-                    case .username: focusedField = .handle
-                    case .general: break
+                    .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardDidShowNotification)) { _ in
+                        keyboardVisible = true
+                        revealFocusedField(using: proxy)
                     }
-                }
+                    .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in
+                        keyboardVisible = false
+                    }
+                    .onAppear { focusedField = displayName.isEmpty ? .name : .handle }
+                    .onChange(of: displayName) { _, _ in model.clearOnboardingError() }
+                    .onChange(of: handle) { _, _ in model.clearOnboardingError() }
+                    .onChange(of: model.onboardingError) { _, error in
+                        guard let error else { return }
+                        SignalAccessibility.announce(error.message)
+                        switch error.field {
+                        case .name: focusedField = .name
+                        case .username: focusedField = .handle
+                        case .general: break
+                        }
+                    }
+            }
         }.tint(SignalTheme.accent)
+    }
+
+    private func revealFocusedField(using proxy: ScrollViewProxy) {
+        guard dynamicTypeSize.isAccessibilitySize, let focusedField else { return }
+        proxy.scrollTo(focusedField, anchor: .bottom)
     }
 
     private func profileField(_ title: String, text: Binding<String>, field: Field) -> some View {
@@ -290,6 +318,7 @@ struct LiveOnboardingView: View {
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier(field == .name ? "onboarding.name.message" : "onboarding.username.message")
         }
+        .id(field)
     }
 
     private func error(_ field: OnboardingErrorField) -> String? {
