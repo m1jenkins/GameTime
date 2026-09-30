@@ -431,6 +431,36 @@ get the same words. `LiveDesignUITests` asserts these strings.
 | Health permission, nothing readable afterwards | **No matching activity yet** · "We couldn't find matching activity in the last 30 days. Check your Apple Health settings and refresh after your Watch has synced." (app, readiness wording) · "Missing activity doesn't count against you." · **Refresh activity check**, a neutral gray button (app) · "Manage access in Apple Health" (app link) · "You can keep browsing without it." · **Continue**, the one blue button (new). Never "denied" or "permission". |
 | Not now on the Health screen | No follow-up screen. The app opens, and a challenge's Health card says **Apple Health isn't connected** with its own **Connect** (see the Floodlight rows above). |
 
+## Round 13
+
+Copy for Floodlight round 13 (implementation authorized September 30, 2026): Challenges (`LiveLibraryView`), You (`LiveRecordView`), Friends
+(`FriendsViews.swift`), the four-step Create flow (`ChallengeCreationViews`,
+`ChallengeCreationInviteView`) and Settings (`LiveSettingsView`). Rows marked
+*app* use native strings as they are; only the rows marked *new* or *moved*
+change what a person reads. Add `LiveDesignUITests` or `ChallengeV1UITests`
+assertions in the same change that builds them. The native review button now
+uses **Review and agree** for VoiceOver too.
+
+| Domain term | On screen |
+| --- | --- |
+| tab bar (app) | **Home** · **Challenges** · **You**, in the system Liquid Glass tab bar. Create is a full-screen cover and Settings a sheet, so neither shows it. |
+| invitation card in Challenges (moved) | **Review and agree**, the one blue button, and a gray **Decline**, in place of the card's filled **Accept**. Same words as the invitation screen; VoiceOver keeps "Accept: review invitation" until the native label changes. Decline still asks first with **Decline this invitation?**. |
+| Challenges with nothing in it (app) | **Your first challenge** · "Choose a goal and the dates that work for you." · **Create a challenge**, the one blue button. No filters and no invitation link on this state. |
+| friend request row (app words, new look) | **Decline** and **Accept** as the same gray pill; neither is blue. VoiceOver: "Decline Maya's request" / "Accept Maya's request". Caption: "If you decline, the request goes away. We don't tell them." |
+| friend just accepted (new) | The request card goes away and the friend joins the top of **Friends** with "@maya.d · Added today" for the rest of that day, then just "@maya.d". No toast and no notice to anyone. |
+| create progress (app) | Four numbered steps: **Who** · **Goal** · **Challenge** · **Friends**. VoiceOver: "Step 1 of 4, Who". Never show "Step 1 of 4" on screen. |
+| Who's it for? (app) | **Who's it for?** · **Personal goal** "Just for you" · **Goals with friends** "Each person chooses a goal" · **Friend leaderboard** "Compare saved results". The chosen row shows a filled check; **Continue** is the one blue button. |
+| Settings, appearance (new) | **Appearance** with **System** · **Light** · **Dark**. **System** is selected by default. Under it: "System matches your iPhone." |
+| Settings rows (moved) | **Apple Health** "Activity and permissions" (app) · **Privacy Policy** "How GameTime handles your data" and **Beta Terms** "The terms for this beta release", moved up from Help & support · **Sign out** as plain muted text under the rows, never red and never a pill (moved up from Account). |
+
+The owner’s September 30 implementation decisions add one **Contact support**
+row and quiet **Delete account** text immediately under **Sign out**, without
+an Account section or version line. Appearance stores **System** by default;
+**System** follows the iPhone until **Light** or **Dark** is chosen. Selected
+filters and activity choices stay outlined, with one blue action per screen.
+The record stays above Friends on You; the agreement card stays above the live
+challenge in Challenges.
+
 ## Where the copy lives
 
 User-facing strings are Swift literals in the view layer and in the

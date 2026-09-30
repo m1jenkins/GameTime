@@ -25,9 +25,9 @@ import XCTest
                     name: "browse-\(filter)-\(large ? "accessibility" : "light")",
                     width: 375, scrolls: true, contrast: large ? .high : .normal,
                     required: ["Challenges", "All", "Invited", "Finished"] +
-                        (filter == "Finished" ? ["No finished challenges"] : ["Accept", "Decline"]) +
+                        (filter == "Finished" ? ["No finished challenges"] : ["Needs your attention", "Review and agree", "Decline"]) +
                         (filter == "All" ? ["Active", "Upcoming"] : []),
-                    forbidden: filter == "All" ? [] : ["Steps challenge"])
+                    forbidden: ["Accept"] + (filter == "All" ? [] : ["Steps challenge"]))
             }
         }
     }

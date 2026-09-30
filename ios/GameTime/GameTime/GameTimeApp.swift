@@ -128,7 +128,7 @@ struct GameTimeApp: App {
                 #if DEBUG
                 if LiveDesignFixtures.enabled {
                     services = FixtureServicesFactory.make(
-                        arguments: ["--fixture-mode"],
+                        arguments: LiveDesignFixtures.round13 ? ["--fixture-mode", "--fixture-empty"] : ["--fixture-mode"],
                         profileClient: LiveDesignFixtures.makeProfileClient(),
                         challengesV1: LiveDesignFixtures.makeClient(),
                         challengeHealthDependencies: LiveDesignFixtures.healthDependencies())

@@ -7,6 +7,7 @@ struct ChallengeCreationInviteView: View {
     @Bindable var store: ChallengeV1Store
     let challengeID: UUID
     let progressLabels: [String]
+    var profile: UserProfile? = nil
     var onGoHome: () -> Void = {}
     @Environment(\.dismiss) private var dismiss
     @State private var draft: ChallengeCreationInvitationDraft
@@ -14,22 +15,24 @@ struct ChallengeCreationInviteView: View {
     @State private var loading = false
     @State private var inviting = false
     @State private var showingLinks = false
+    @State private var avatarSlots: [UUID: Int] = [:]
     @Environment(FriendsStore.self) private var friends: FriendsStore?
     @Environment(\.dynamicTypeSize) private var typeSize
-    @ScaledMetric(relativeTo: .largeTitle) private var headingSize: CGFloat = 30
     @AccessibilityFocusState private var headingFocused: Bool
 
-    init(store: ChallengeV1Store, challengeID: UUID, progressLabels: [String] = ["Goal", "Challenge", "Friends"], onGoHome: @escaping () -> Void = {}) {
+    init(store: ChallengeV1Store, challengeID: UUID, progressLabels: [String] = ["Who", "Goal", "Challenge", "Friends"],
+         profile: UserProfile? = nil, onGoHome: @escaping () -> Void = {}) {
         self.store = store
         self.challengeID = challengeID
         self.progressLabels = progressLabels
+        self.profile = profile
         self.onGoHome = onGoHome
         _draft = State(initialValue: ChallengeCreationInvitationDraft(challengeID: challengeID))
     }
 
     #if DEBUG
     init(store: ChallengeV1Store, challengeID: UUID, showingConfirmation: Bool,
-         progressLabels: [String] = ["Goal", "Challenge", "Friends"]) {
+         progressLabels: [String] = ["Who", "Goal", "Challenge", "Friends"]) {
         self.store = store
         self.challengeID = challengeID
         self.progressLabels = progressLabels
@@ -39,7 +42,7 @@ struct ChallengeCreationInviteView: View {
 
     init(store: ChallengeV1Store, draft: ChallengeCreationInvitationDraft,
          showingConfirmation: Bool = false,
-         progressLabels: [String] = ["Goal", "Challenge", "Friends"]) {
+         progressLabels: [String] = ["Who", "Goal", "Challenge", "Friends"]) {
         self.store = store
         challengeID = draft.challengeID
         self.progressLabels = progressLabels
@@ -59,7 +62,7 @@ struct ChallengeCreationInviteView: View {
                 invitations
             }
         }
-        .tint(SignalCreationTheme.accent)
+        .tint(Floodlight.link)
         .task(id: challengeID) { await refresh() }
         .onChange(of: store.actor) {
             draft.reset(); showingConfirmation = false
@@ -70,23 +73,23 @@ struct ChallengeCreationInviteView: View {
 
     private var invitations: some View {
         ScrollView { content }
-        .background(SignalCreationTheme.canvas)
-        .foregroundStyle(SignalCreationTheme.textPrimary)
+        .foregroundStyle(Floodlight.ink)
         .modifier(ChallengeScrollLegibility())
         .scrollDismissesKeyboard(.interactively)
         .toolbar(.hidden, for: .navigationBar)
         .navigationBarBackButtonHidden(true)
         .safeAreaInset(edge: .top, spacing: 0) {
-            SignalCreationChrome(title: "Create challenge", showsBack: false, back: {}, close: { dismiss() })
+            FloodlightCreationChrome(title: "Create challenge", showsBack: false, back: {}, close: { dismiss() })
         }
         .safeAreaInset(edge: .bottom, spacing: 0) {
             if currentRow != nil { footer }
         }
         .refreshable { await refresh() }
+        .background(FloodlightCreationBackdrop())
     }
 
     private var content: some View {
-        VStack(alignment: .leading, spacing: 18) {
+        VStack(alignment: .leading, spacing: 14) {
             if let row = currentRow {
                 invitation(row)
             } else {
@@ -100,29 +103,30 @@ struct ChallengeCreationInviteView: View {
             if loading { ProgressView("Loading your challenge…") }
             if store.busy { ProgressView("Saving…") }
         }
-        .padding(.horizontal, SignalCreationTheme.contentInset)
-        .padding(.top, 2)
+        .padding(.horizontal, 16)
+        .padding(.top, 6)
         .padding(.bottom, 16)
         .frame(maxWidth: .infinity, alignment: .leading)
         .id("invite-top")
     }
 
     private func invitation(_ row: ChallengeV1) -> some View {
-        VStack(alignment: .leading, spacing: 18) {
-            SignalCreationProgress(labels: progressLabels, current: progressLabels.count - 1)
+        VStack(alignment: .leading, spacing: 14) {
+            FloodlightCreationProgress(labels: progressLabels, current: progressLabels.count - 1)
                 .accessibilityIdentifier("beta.create.progress")
                 .padding(.bottom, 1)
             VStack(alignment: .leading, spacing: 10) {
-                Text("Invite friends.").font(.system(size: headingSize, weight: .bold)).tracking(-1.1)
+                FloodlightTitle("Invite friends.", size: 36)
                     .accessibilityAddTraits(.isHeader).accessibilityFocused($headingFocused)
                     .accessibilityIdentifier("beta.invite.heading")
                 Text(row.format.hasTarget
                      ? "Choose up to 5. They’ll each review the rules and choose their own goal."
                      : "Choose up to 5. They’ll each review the rules.")
-                    .font(.system(.subheadline, design: .default)).foregroundStyle(SignalCreationTheme.textSecondary)
+                    .floodlightFont(14, weight: .medium).foregroundStyle(Floodlight.muted)
                     .fixedSize(horizontal: false, vertical: true)
             }
             if row.status == "lobby_open" {
+                lobby(row)
                 picker(row)
                 InviteAddFriendRow()
                 if store.linksAvailable { links(row) }
@@ -135,10 +139,39 @@ struct ChallengeCreationInviteView: View {
                 Text("Inviting is closed. Open your challenge to review the current rules and status.")
                     .font(.subheadline).foregroundStyle(SignalCreationTheme.textSecondary)
             }
-            Text("You pick the final roster from the friends who accept. Everyone on it agrees before the start.")
-                .font(.caption).foregroundStyle(SignalCreationTheme.textSecondary)
-                .fixedSize(horizontal: false, vertical: true)
         }
+    }
+
+    private func slot(_ person: FriendPerson) -> Int { avatarSlots[person.id] ?? 4 }
+    private func lobby(_ row: ChallengeV1) -> some View {
+        let selected = (friends?.friends ?? []).filter { draft.chosen.contains($0.id) }
+        let members = draft.others(row, actor: store.actor)
+        let selectedSlots = members.map { avatarSlots[$0.actorId] ?? 4 } + selected.map(slot)
+        let layout = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 12)) : AnyLayout(HStackLayout(spacing: 12))
+        return VStack(alignment: .leading, spacing: 10) {
+            FloodlightLabel("Your lobby")
+            layout {
+                FloodlightCreationPot(cents: row.config.amountCents,
+                                      initials: FloodlightOrb.initials(profile?.displayName ?? row.own(store.actor)?.username ?? "You"),
+                                      selectedSlots: selectedSlots).frame(width: 142)
+                VStack(alignment: .leading, spacing: 5) {
+                    Text(LiveChallengePresentation.money(row.config.amountCents) + " in the pot")
+                        .floodlightFont(16, weight: .semibold).foregroundStyle(Floodlight.ink)
+                        .accessibilityIdentifier("beta.invite.pot")
+                    Text(invitationLine(selected, members: members)).floodlightFont(12.5, weight: .medium)
+                        .foregroundStyle(Floodlight.heroMuted).fixedSize(horizontal: false, vertical: true)
+                }.frame(maxWidth: .infinity, alignment: .leading)
+            }
+        }.padding(15).floodlightHero().accessibilityElement(children: .contain).accessibilityIdentifier("beta.invite.lobby")
+    }
+    private func invitationLine(_ selected: [FriendPerson], members: [ChallengeV1.Member]) -> String {
+        let memberNames = members.map { member in
+            friends?.friends.first { $0.id == member.actorId }?.firstName ?? member.username
+        }
+        let names = memberNames + selected.map(\.firstName)
+        guard !names.isEmpty else { return "Just you so far" }
+        return ListFormatter.localizedString(byJoining: names) + (names.count == 1 ? " is invited. " : " are invited. ")
+            + "A seat fills when that friend agrees."
     }
 
     /// Accepted friends as checkable rows. People already in the lobby stay
@@ -166,45 +199,59 @@ struct ChallengeCreationInviteView: View {
             .accessibilityElement(children: .combine)
             .accessibilityIdentifier("beta.invite.empty")
         } else {
-            VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: 12) {
                 HStack {
-                    Text("Your friends").font(.subheadline.weight(.semibold)).accessibilityAddTraits(.isHeader)
+                    FloodlightTitle("Your friends", size: 20).accessibilityAddTraits(.isHeader)
                         .accessibilityIdentifier("beta.invite.members")
                     Spacer(minLength: 12)
                     Text("\(members.count + draft.chosen.count) of \(ChallengeCreationInvitationDraft.othersLimit) chosen")
-                        .font(.subheadline.monospacedDigit()).foregroundStyle(SignalCreationTheme.textSecondary)
+                        .floodlightFont(12.5, weight: .medium).foregroundStyle(Floodlight.muted)
                         .accessibilityIdentifier("beta.invite.count")
                 }
-                LiveListCard {
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: typeSize.isAccessibilitySize ? 1 : 4), spacing: 12) {
                     ForEach(members) { person in
-                        FriendRow(person: FriendPerson(id: person.actorId, username: person.username,
-                                                       displayName: friends?.friends.first { $0.id == person.actorId }?.displayName ?? person.username),
-                                  detail: person.consented ? "Agreed" : person.selected ? "On your roster" : "Invited") {
-                            Image(systemName: "checkmark.circle.fill").font(.system(size: 22))
-                                .foregroundStyle(SignalCreationTheme.textSecondary).accessibilityHidden(true)
-                        }
-                        .accessibilityElement(children: .combine)
+                        let friend = friends?.friends.first { $0.id == person.actorId }
+                            ?? FriendPerson(id: person.actorId, username: person.username, displayName: person.username)
+                        friendTile(friend, selected: true)
+                            .accessibilityElement(children: .ignore)
+                            .accessibilityLabel(friend.displayName + ", @" + friend.username + ", " + (person.consented ? "Agreed" : person.selected ? "On your roster" : "Invited"))
                     }
                     ForEach(candidates) { person in
                         let on = draft.chosen.contains(person.id)
                         let full = !on && draft.chosen.count >= remaining
                         Button { draft.toggle(person.id, row: row, actor: store.actor) } label: {
-                            FriendRow(person: person) {
-                                Image(systemName: on ? "checkmark.circle.fill" : "circle").font(.system(size: 22))
-                                    .foregroundStyle(on ? SignalCreationTheme.accent : SignalCreationTheme.divider)
-                                    .accessibilityHidden(true)
-                            }
-                            .opacity(full ? 0.45 : 1)
+                            friendTile(person, selected: on).opacity(full ? 0.45 : 1)
                         }
                         .buttonStyle(.plain)
+                        .accessibilityLabel(person.displayName + ", @" + person.username)
                         .disabled(full || !canInvite)
                         .accessibilityAddTraits(on ? [.isSelected] : [])
                         .accessibilityHint(full ? "You’ve chosen 5 people." : "")
                         .accessibilityIdentifier("beta.invite.friend." + person.username)
                     }
                 }
-            }
+            }.padding(15).floodlightCard()
         }
+    }
+
+    private func friendTile(_ person: FriendPerson, selected: Bool) -> some View {
+        VStack(spacing: 6) {
+            FloodlightOrb(slot: slot(person), initials: FloodlightOrb.initials(person.displayName), size: 54)
+                .overlay {
+                    if selected { Circle().stroke(Floodlight.link, lineWidth: 2).padding(-5).accessibilityHidden(true) }
+                }
+                .overlay(alignment: .bottomTrailing) {
+                    if selected {
+                        Image(systemName: "checkmark").font(.system(size: 11, weight: .bold)).foregroundStyle(Floodlight.buttonInk)
+                            .frame(width: 22, height: 22).background(Circle().fill(Floodlight.button))
+                            .overlay(Circle().strokeBorder(Floodlight.card, lineWidth: 2)).offset(x: 6, y: 4).accessibilityHidden(true)
+                    }
+                }
+            Text(person.firstName).floodlightFont(13.5, weight: .semibold).foregroundStyle(Floodlight.ink)
+                .fixedSize(horizontal: false, vertical: true)
+            Text("@" + person.username).floodlightFont(11.5, weight: .medium).foregroundStyle(Floodlight.muted)
+                .fixedSize(horizontal: false, vertical: true)
+        }.frame(maxWidth: .infinity).padding(.top, 5).contentShape(Rectangle())
     }
 
     /// Only when the server has links open. The TestFlight build keeps them closed.
@@ -235,11 +282,12 @@ struct ChallengeCreationInviteView: View {
                 Image(systemName: "arrow.right").accessibilityHidden(true)
             }
         }
-        .buttonStyle(LivePrimaryButtonStyle()).disabled(store.busy || store.pending != nil || inviting)
+        .buttonStyle(FloodlightPrimaryButtonStyle()).disabled(store.busy || store.pending != nil || inviting)
         .accessibilityIdentifier("beta.invite.done")
-        .padding(.horizontal, SignalCreationTheme.contentInset)
-        .padding(.top, 12).padding(.bottom, 6)
-        .background(SignalCreationTheme.canvas)
+        .padding(.horizontal, 16)
+        .padding(.top, 10).padding(.bottom, 6)
+        .background(Floodlight.ground)
+        .overlay(alignment: .top) { Rectangle().fill(Floodlight.line).frame(height: 1) }
     }
 
     private func finish() async {
@@ -275,6 +323,9 @@ struct ChallengeCreationInviteView: View {
         await store.loadDetail(challengeID)
         // The picker lists only friends the server confirms right now.
         await friends?.refresh()
+        for (index, friend) in (friends?.friends ?? []).enumerated() where avatarSlots[friend.id] == nil {
+            avatarSlots[friend.id] = [1, 2, 3, 5, 0, 4][index % 6]
+        }
     }
 
     private func retry() async {

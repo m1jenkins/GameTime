@@ -439,9 +439,50 @@ import GameTimeCore
         attachment.lifetime = .keepAlways; add(attachment)
         let request = VNRecognizeTextRequest(); request.recognitionLevel = .accurate
         request.recognitionLanguages = ["en-US"]; request.minimumTextHeight = 0.005
-        request.customWords = ["km", "steps", "Continue"]
+        request.customWords = ["km", "steps", "Continue", "Your dates", "YOUR", "DATES"]
         try VNImageRequestHandler(cgImage: XCTUnwrap(image.cgImage)).perform([request])
-        return .init(observations: request.results ?? [], size: mounted.window.bounds.size, image: image)
+        let observations = request.results ?? []
+        let heading = try recognizeDatesHeading(in: image, observations: observations)
+        return .init(observations: observations, size: mounted.window.bounds.size, image: image,
+                     supplementaryText: heading ?? "")
+    }
+
+    private func recognizeDatesHeading(in image: UIImage, observations: [VNRecognizedTextObservation]) throws -> String? {
+        // The 10-point, tracked heading can be misread at this viewport's 1x
+        // capture scale. Re-read its pixels immediately above the visible
+        // Starts row, retaining the original image for all geometry checks.
+        if observations.contains(where: { $0.topCandidates(1).first?.string.lowercased() == "your dates" }) { return nil }
+        guard let cg = image.cgImage,
+              let starts = observations.first(where: {
+                  $0.topCandidates(1).first?.string.range(of: "^starts\\b", options: [.regularExpression, .caseInsensitive]) != nil
+              }) else { return nil }
+        let size = image.size
+        func frame(_ observation: VNRecognizedTextObservation) -> CGRect {
+            let bounds = observation.boundingBox
+            return CGRect(x: bounds.minX * size.width, y: (1 - bounds.maxY) * size.height,
+                          width: bounds.width * size.width, height: bounds.height * size.height)
+        }
+        let startFrame = frame(starts)
+        for observation in observations {
+            let bounds = frame(observation)
+            guard bounds.maxY < startFrame.minY, startFrame.minY - bounds.maxY < 56,
+                  bounds.minX < size.width / 4, bounds.width < size.width / 2,
+                  bounds.height < 20 else { continue }
+            let region = bounds.insetBy(dx: -4, dy: -4).integral.intersection(CGRect(origin: .zero, size: size))
+            guard let crop = cg.cropping(to: region) else { continue }
+            let format = UIGraphicsImageRendererFormat.default(); format.scale = 1; format.opaque = true
+            let enlargedSize = CGSize(width: region.width * 4, height: region.height * 4)
+            let enlarged = UIGraphicsImageRenderer(size: enlargedSize, format: format).image { context in
+                context.cgContext.interpolationQuality = .high
+                UIImage(cgImage: crop).draw(in: CGRect(origin: .zero, size: enlargedSize))
+            }
+            let request = VNRecognizeTextRequest(); request.recognitionLevel = .accurate
+            request.recognitionLanguages = ["en-US"]; request.customWords = ["YOUR", "DATES"]
+            try VNImageRequestHandler(cgImage: XCTUnwrap(enlarged.cgImage)).perform([request])
+            let text = (request.results ?? []).compactMap { $0.topCandidates(1).first?.string.lowercased() }.joined(separator: " ")
+            if text == "your dates" { return text }
+        }
+        return nil
     }
 
     private func verticalScroll(in view: UIView) -> UIScrollView? {
@@ -484,7 +525,8 @@ import GameTimeCore
     let observations: [VNRecognizedTextObservation]
     let size: CGSize
     let image: UIImage
-    var text: String { observations.compactMap { $0.topCandidates(1).first?.string.lowercased() }.joined(separator: " ") }
+    let supplementaryText: String
+    var text: String { (observations.compactMap { $0.topCandidates(1).first?.string.lowercased() } + [supplementaryText]).joined(separator: " ") }
     func frame(matching pattern: String, beside other: CGRect? = nil) -> CGRect? {
         for observation in observations {
             guard let text = observation.topCandidates(1).first,
@@ -548,7 +590,9 @@ import GameTimeCore
         }
         guard rendered else { return nil }
         var red: CGFloat = 0, green: CGFloat = 0, blue: CGFloat = 0, alpha: CGFloat = 0
-        UIColor(SignalCreationTheme.accent).getRed(&red, green: &green, blue: &blue, alpha: &alpha)
+        // This viewport explicitly renders light. Round 13's flat primary pill
+        // uses the Floodlight button fill, distinct from its blue text accent.
+        FloodlightToken.button.values.light.uiColor.getRed(&red, green: &green, blue: &blue, alpha: &alpha)
         let expected = [red, green, blue].map { Int(($0 * 255).rounded()) }
         let x = width / 2
         var bottom: Int?

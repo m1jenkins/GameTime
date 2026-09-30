@@ -84,7 +84,7 @@ import XCTest
 
     // MARK: Store
 
-    func testAcceptMovesRequestToFriendsAndSaysSo() async throws {
+    func testAcceptMovesRequestToFriendsWithoutToast() async throws {
         let (store, client, actor, _) = makeStore()
         client.list.incoming = [taylor]
         store.setActor(actor); await store.refresh()
@@ -96,9 +96,36 @@ import XCTest
         XCTAssertTrue(ok)
         XCTAssertEqual(store.friends.map(\.id), [taylor.id])
         XCTAssertTrue(store.incoming.isEmpty)
-        XCTAssertEqual(store.notice, "You and Taylor are now friends.")
+        XCTAssertNil(store.notice)
         XCTAssertNil(store.pending)
         XCTAssertEqual(client.commands.map(\.op), [.accept])
+    }
+
+    func testAddedTodayEndsAtLocalMidnightAndOnlyMarksAcceptedIncomingRequests() async throws {
+        let calendar = Calendar.current
+        var now = try XCTUnwrap(calendar.date(from: DateComponents(year: 2026, month: 9, day: 30, hour: 23, minute: 59, second: 59)))
+        let since = try XCTUnwrap(calendar.date(from: DateComponents(year: 2026, month: 9, day: 30, hour: 0, minute: 1)))
+        let actor = UUID(), auth = FriendsTestAuth(actor)
+        let client = FakeFriendsClient(serverTime: ChallengeInstant(date: now))
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        addTeardownBlock { try? FileManager.default.removeItem(at: directory) }
+        let store = FriendsStore(auth: auth, client: client, journal: FriendJournal(directory: directory), clock: { now })
+        let sam = FriendPerson(id: UUID(), username: "samr", displayName: "Sam Rivera",
+            since: try ChallengeInstant("2026-09-12T10:00:00+00:00"), youAsked: false)
+        var accepted = taylor
+        accepted.since = ChallengeInstant(date: since); accepted.youAsked = false
+        let sent = FriendPerson(id: UUID(), username: "jordanb", displayName: "Jordan Blake",
+            since: ChallengeInstant(date: since), youAsked: true)
+        client.list.friends = [sam, sent, accepted]
+        store.setActor(actor); await store.refresh()
+
+        XCTAssertEqual(store.friends.map(\.id), [accepted.id, sam.id, sent.id])
+        XCTAssertEqual(store.detail(for: accepted), "@taylork · Added today")
+        XCTAssertEqual(store.detail(for: sent), "@jordanb")
+
+        now = try XCTUnwrap(calendar.date(from: DateComponents(year: 2026, month: 10, day: 1, hour: 0)))
+        XCTAssertEqual(store.detail(for: accepted), "@taylork")
+        XCTAssertEqual(store.friends.map(\.id), [sam.id, sent.id, accepted.id])
     }
 
     func testLostResponseKeepsTheSameRequestForRetry() async throws {

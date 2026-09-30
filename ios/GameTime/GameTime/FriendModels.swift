@@ -216,7 +216,7 @@ enum FriendsCopy {
         let name = command.person.firstName
         switch command.op {
         case .request: return "Request sent. \(name) will see it in GameTime and can accept or decline."
-        case .accept: return "You and \(name) are now friends."
+        case .accept: return nil
         case .decline: return "Request declined."
         case .cancel: return "Request cancelled."
         case .remove: return "\(name) is no longer your friend."

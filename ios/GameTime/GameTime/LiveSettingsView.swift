@@ -21,41 +21,123 @@ struct LiveSettingsView: View {
         }
     }
 
-    var body: some View {
-        LiveSettingsPage(title: "Settings") {
-            LiveListCard {
-                NavigationLink { LiveHealthSettingsView(store: store) } label: {
-                    LiveNavRow(symbol: "heart", title: "Apple Health", detail: "Activity and permissions")
-                }
-                NavigationLink { LivePrivacyView() } label: {
-                    LiveNavRow(symbol: "lock", title: "Sharing & privacy", detail: "You choose what friends see")
-                }
-            }
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.colorScheme) private var scheme
+    @AppStorage(AppAppearance.storageKey) private var appearance = AppAppearance.system
 
-            LiveListCard {
-                NavigationLink { LiveSimulationView() } label: {
-                    LiveNavRow(symbol: "dollarsign.circle", title: "Simulated stakes", detail: "Amounts, fees and results")
-                }
-                NavigationLink { LiveSupportView() } label: {
-                    LiveNavRow(symbol: "questionmark.circle", title: "Help & support", detail: "Get help and read our policies")
-                }
-                NavigationLink { LiveAccountView() } label: {
-                    LiveNavRow(symbol: "person.crop.circle", title: "Account", detail: model.profile.map { "@\($0.handle)" } ?? "Sign-in and account deletion")
-                }
-                if canOpenEarlierChallenges {
-                    NavigationLink { LivePersonalHistoryView() } label: {
-                        LiveNavRow(symbol: "clock.arrow.circlepath", title: "Earlier challenges", detail: "Your existing Personal agreements")
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                FloodlightNavButton(symbol: "chevron.left", label: "Back", action: { dismiss() })
+                Text("SETTINGS").floodlightFont(36, weight: .bold, condensed: true)
+                    .accessibilityLabel("Settings").accessibilityAddTraits(.isHeader)
+                    .padding(.bottom, 10)
+                appearanceCard
+                VStack(spacing: 0) {
+                    NavigationLink { LiveHealthSettingsView(store: store) } label: {
+                        settingsRow(symbol: "heart", title: "Apple Health", detail: "Activity and permissions")
                     }
-                    .accessibilityIdentifier("settings.personal-history")
+                    Divider().overlay(Floodlight.line)
+                    policyRow("Privacy Policy", detail: "How GameTime handles your data", symbol: "hand.raised",
+                              url: model.configuration.privacyPolicyURL)
+                        .accessibilityIdentifier("account-support.privacy-policy")
+                    Divider().overlay(Floodlight.line)
+                    policyRow("Beta Terms", detail: "The terms for this beta release", symbol: "doc.text",
+                              url: model.configuration.betaTermsURL)
+                        .accessibilityIdentifier("account-support.beta-terms")
+                    Divider().overlay(Floodlight.line)
+                    policyRow("Contact support", symbol: "envelope", url: model.configuration.supportMailtoURL)
+                        .accessibilityIdentifier("account-support.contact")
+                    if canOpenEarlierChallenges {
+                        Divider().overlay(Floodlight.line)
+                        NavigationLink { LivePersonalHistoryView() } label: {
+                            settingsRow(symbol: "clock.arrow.circlepath", title: "Earlier challenges", detail: "Your existing Personal agreements")
+                        }
+                        .accessibilityIdentifier("settings.personal-history")
+                    }
+                }
+                .floodlightCard(radius: 22)
+                LiveAccountActions().padding(.top, 12)
+                if demoMode.isActive {
+                    Button("Exit demo mode", action: demoMode.exit)
+                        .buttonStyle(FloodlightQuietButtonStyle())
+                        .accessibilityIdentifier("demo.exit")
                 }
             }
-            if demoMode.isActive {
-                Button("Exit demo mode", action: demoMode.exit)
-                    .buttonStyle(LiveSecondaryButtonStyle())
-                    .accessibilityIdentifier("demo.exit")
+            .padding(.horizontal, 16).padding(.top, 10).padding(.bottom, 28)
+        }
+        .scrollIndicators(.hidden)
+        .background {
+            ZStack(alignment: .top) {
+                Floodlight.ground.ignoresSafeArea()
+                FloodlightSky().frame(height: 150).ignoresSafeArea(.container, edges: .top)
             }
         }
+        .foregroundStyle(Floodlight.ink)
+        .toolbar(.hidden, for: .navigationBar)
         .buttonStyle(.plain)
+    }
+
+    private var appearanceCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 12) {
+                settingsIcon("circle.lefthalf.filled")
+                Text("Appearance").floodlightFont(16, weight: .semibold)
+            }
+            HStack(spacing: 4) {
+                ForEach(AppAppearance.allCases, id: \.self) { option in
+                    Button { appearance = option } label: {
+                        Text(option.title).floodlightFont(14, weight: .semibold)
+                            .frame(maxWidth: .infinity, minHeight: 40)
+                            .background {
+                                if appearance == option {
+                                    Capsule().fill(scheme == .dark ? Floodlight.well : Floodlight.card)
+                                        .overlay(Capsule().strokeBorder(Floodlight.wellEdge, lineWidth: 1))
+                                }
+                            }
+                    }
+                    .accessibilityIdentifier("settings.appearance." + option.rawValue)
+                    .accessibilityAddTraits(appearance == option ? [.isSelected] : [])
+                }
+            }
+            .padding(4).background(Capsule().fill(scheme == .dark ? Floodlight.card : Floodlight.well))
+            .overlay(Capsule().strokeBorder(scheme == .dark ? Floodlight.cardEdge : Floodlight.wellEdge, lineWidth: 1))
+            Text("System matches your iPhone.").floodlightFont(13)
+                .foregroundStyle(Floodlight.muted).fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(16).floodlightCard(radius: 22)
+    }
+
+    private func settingsIcon(_ symbol: String) -> some View {
+        Image(systemName: symbol).font(.system(size: 17, weight: .medium))
+            .foregroundStyle(Floodlight.link).frame(width: 34, height: 34)
+            .background(RoundedRectangle(cornerRadius: 11).fill(Floodlight.well))
+            .overlay(RoundedRectangle(cornerRadius: 11).strokeBorder(Floodlight.wellEdge, lineWidth: 1))
+            .accessibilityHidden(true)
+    }
+
+    private func settingsRow(symbol: String, title: String, detail: String? = nil, chevron: Bool = true) -> some View {
+        HStack(spacing: 12) {
+            settingsIcon(symbol)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title).floodlightFont(16, weight: .semibold)
+                if let detail { Text(detail).floodlightFont(13).foregroundStyle(Floodlight.muted) }
+            }.fixedSize(horizontal: false, vertical: true)
+            Spacer(minLength: 4)
+            if chevron {
+                Image(systemName: "chevron.right").font(.system(size: 14, weight: .medium))
+                    .foregroundStyle(Floodlight.muted).accessibilityHidden(true)
+            }
+        }
+        .padding(.horizontal, 16).padding(.vertical, 12).frame(minHeight: 62).contentShape(Rectangle())
+    }
+
+    @ViewBuilder private func policyRow(_ title: String, detail: String? = nil, symbol: String, url: URL?) -> some View {
+        if let url {
+            Link(destination: url) { settingsRow(symbol: symbol, title: title, detail: detail) }
+        } else {
+            settingsRow(symbol: symbol, title: title, detail: "This link isn’t available. Try again later.", chevron: false)
+        }
     }
 }
 
@@ -241,7 +323,7 @@ private struct LiveSupportView: View {
     }
 }
 
-private struct LiveAccountView: View {
+private struct LiveAccountActions: View {
     @Environment(AppModel.self) private var model
     @Environment(\.demoMode) private var demoMode
     @State private var confirmDeletion = false
@@ -253,28 +335,17 @@ private struct LiveAccountView: View {
     }
 
     var body: some View {
-        LiveSettingsPage(title: "Account") {
-            if let profile = model.profile {
-                HStack(spacing: 12) {
-                    LiveAvatar(username: profile.handle, actorID: profile.id, size: 48)
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(profile.displayName).liveFont(18, weight: .semibold)
-                        Text("@\(profile.handle)").font(.subheadline).foregroundStyle(SignalTheme.textSecondary)
-                    }
-                }
-                .padding(.bottom, 12)
-            }
+        VStack(spacing: 0) {
             if !demoMode.isActive {
                 Button(model.isMutating ? "Signing out…" : "Sign out") {
                     SignalAccessibility.announce("Signing out…")
                     Task { await model.signOut() }
                 }
-                .buttonStyle(LiveSecondaryButtonStyle()).disabled(model.isMutating)
+                .buttonStyle(FloodlightQuietButtonStyle()).disabled(model.isMutating)
                 .accessibilityIdentifier("account-support.sign-out")
             }
             Button("Delete account") { confirmDeletion = true }
-                .font(.subheadline.weight(.semibold)).foregroundStyle(SignalTheme.danger)
-                .frame(maxWidth: .infinity, minHeight: 48)
+                .buttonStyle(FloodlightQuietButtonStyle())
                 .disabled(model.isMutating || demoMode.isActive)
                 .accessibilityIdentifier("account-support.delete")
             if model.accountDeletionReceipt != nil {

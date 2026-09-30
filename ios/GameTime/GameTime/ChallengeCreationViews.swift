@@ -3,6 +3,7 @@ import GameTimeCore
 
 struct ChallengeV1Create: View {
     @Bindable var store: ChallengeV1Store
+    let profile: UserProfile?
     @Environment(\.dismiss) private var dismiss
     @Environment(\.challengeHealthFlow) private var health
     private let onGoHome: () -> Void
@@ -11,14 +12,25 @@ struct ChallengeV1Create: View {
     @State private var editor: Editor?
     @State private var focusedInput: String?
     @State private var keyboardVisible = false
-    @ScaledMetric(relativeTo: .title3) private var choiceSymbolWidth: CGFloat = 28
-    @ScaledMetric(relativeTo: .largeTitle) private var headingSize: CGFloat = 30
+    @Environment(\.dynamicTypeSize) private var typeSize
     @AccessibilityFocusState private var headingFocused: Bool
-    init(store: ChallengeV1Store, initialPolicy: ChallengeV1Policy? = nil, allowed: Set<String>? = nil, onGoHome: @escaping () -> Void = {}) {
-        self.init(store: store, draft: ChallengeCreationDraft(initialPolicy: initialPolicy, allowed: allowed), onGoHome: onGoHome)
+    init(store: ChallengeV1Store, initialPolicy: ChallengeV1Policy? = nil, allowed: Set<String>? = nil,
+         profile: UserProfile? = nil, onGoHome: @escaping () -> Void = {}) {
+        let draft: ChallengeCreationDraft
+        #if DEBUG
+        if LiveDesignFixtures.round13 {
+            draft = ChallengeCreationDraft(initialPolicy: initialPolicy, allowed: allowed,
+                                           now: LiveDesignFixtures.now.date, zone: "America/Los_Angeles")
+            if draft.metrics.contains(.distance) { draft.metric = .distance }
+        } else { draft = ChallengeCreationDraft(initialPolicy: initialPolicy, allowed: allowed) }
+        #else
+        draft = ChallengeCreationDraft(initialPolicy: initialPolicy, allowed: allowed)
+        #endif
+        self.init(store: store, draft: draft, profile: profile, onGoHome: onGoHome)
     }
-    init(store: ChallengeV1Store, draft: ChallengeCreationDraft, onGoHome: @escaping () -> Void = {}) {
+    init(store: ChallengeV1Store, draft: ChallengeCreationDraft, profile: UserProfile? = nil, onGoHome: @escaping () -> Void = {}) {
         self.store = store
+        self.profile = profile
         self.onGoHome = onGoHome
         _draft = State(initialValue: draft)
     }
@@ -26,7 +38,7 @@ struct ChallengeV1Create: View {
         switch draft.step {
         case .type: "Who’s it for?"
         case .activity: "What’s your goal?"
-        case .review: draft.mode == .personal ? "Review your goal." : "Make it a\nchallenge."
+        case .review: draft.mode == .personal ? "Review your goal." : "Make it a challenge."
         }
     }
     private var ready: Bool { health == nil || draft.healthBinding(actor: store.actor).map { health?.canConsent($0) == true } == true }
@@ -35,7 +47,7 @@ struct ChallengeV1Create: View {
         NavigationStack {
             if let receipt = draft.receipt, let id = receipt.id {
                 if draft.savedPolicy?.mode == .friend {
-                    ChallengeCreationInviteView(store: store, challengeID: id, progressLabels: progressLabels, onGoHome: onGoHome)
+                    ChallengeCreationInviteView(store: store, challengeID: id, progressLabels: progressLabels, profile: profile, onGoHome: onGoHome)
                 } else {
                     ChallengeCreationSuccess(store: store, challengeID: id, onGoHome: onGoHome)
                 }
@@ -43,7 +55,7 @@ struct ChallengeV1Create: View {
                 flow
             }
         }
-        .tint(SignalCreationTheme.accent)
+        .tint(Floodlight.link)
         .onChange(of: store.actor) { draft.close(); dismiss() }
         .onDisappear { draft.close() }
         .task { await draft.initialize(store: store, health: health) }
@@ -51,9 +63,9 @@ struct ChallengeV1Create: View {
     private var flow: some View {
         ScrollViewReader { proxy in
             ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
+                VStack(alignment: .leading, spacing: draft.step == .review && draft.mode == .friend && draft.competition == .goal && !typeSize.isAccessibilitySize ? 8 : 14) {
                     progress.id("creation-top")
-                    Text(heading).font(.system(size: headingSize, weight: .bold)).tracking(-1.1)
+                    FloodlightTitle(heading, size: 36)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityAddTraits(.isHeader).accessibilityFocused($headingFocused)
                         .accessibilityIdentifier("beta.create.heading")
@@ -81,23 +93,23 @@ struct ChallengeV1Create: View {
                         Text("Confirm that you are 21 or older in Challenges before continuing.").font(.subheadline)
                     }
                 }
-                .padding(.horizontal, SignalCreationTheme.contentInset)
-                .padding(.top, 12).padding(.bottom, 20)
+                .padding(.horizontal, 16)
+                .padding(.top, 6).padding(.bottom, 16)
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .background(SignalCreationTheme.canvas)
-            .foregroundStyle(SignalCreationTheme.textPrimary)
+            .foregroundStyle(Floodlight.ink)
             .modifier(ChallengeScrollLegibility())
             .scrollDismissesKeyboard(.interactively)
             .toolbar(.hidden, for: .navigationBar)
             .safeAreaInset(edge: .top, spacing: 0) {
-                SignalCreationChrome(title: draft.step != .type && draft.mode == .personal ? "Personal goal" : "Create challenge",
+                FloodlightCreationChrome(title: draft.step != .type && draft.mode == .personal ? "Personal goal" : "Create challenge",
                                      showsBack: draft.step != draft.firstStep,
                                      back: { if !store.busy { draft.back() } }, close: { dismiss() })
             }
             .safeAreaInset(edge: .bottom, spacing: 0) {
-                primaryAction.padding(.horizontal, SignalCreationTheme.contentInset)
-                    .padding(.top, 12).padding(.bottom, 6).background(SignalCreationTheme.canvas)
+                primaryAction.padding(.horizontal, 16)
+                    .padding(.top, 10).padding(.bottom, 6).background(Floodlight.ground)
+                    .overlay(alignment: .top) { Rectangle().fill(Floodlight.line).frame(height: 1) }
             }
             .onChange(of: draft.step) {
                 proxy.scrollTo("creation-top", anchor: .top)
@@ -124,10 +136,10 @@ struct ChallengeV1Create: View {
                     }
                 }
             }
-        }
+        }.background(FloodlightCreationBackdrop())
     }
     private var progress: some View {
-        SignalCreationProgress(labels: progressLabels, current: draft.progress - 1)
+        FloodlightCreationProgress(labels: progressLabels, current: draft.progress - 1)
             .accessibilityIdentifier("beta.create.progress")
     }
     private var progressLabels: [String] {
@@ -135,41 +147,43 @@ struct ChallengeV1Create: View {
         return draft.directEntry ? stages : ["Who"] + stages
     }
     private var typeStep: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 0) {
             if draft.permits(.personal, .goal) {
                 choice("Personal goal", detail: "Just for you", symbol: "person", selected: draft.mode == .personal, id: "personal") { draft.mode = .personal }
             }
             if draft.permits(.friend, .goal) {
+                if draft.permits(.personal, .goal) { Rectangle().fill(Floodlight.line).frame(height: 1) }
                 choice("Goals with friends", detail: "Each person chooses a goal", symbol: "person.2", selected: draft.mode == .friend && draft.competition == .goal, id: "friend") { draft.mode = .friend; draft.competition = .goal }
             }
             if draft.permits(.friend, .leaderboard) {
+                if draft.permits(.personal, .goal) || draft.permits(.friend, .goal) { Rectangle().fill(Floodlight.line).frame(height: 1) }
                 choice("Friend leaderboard", detail: "Compare saved results", symbol: "chart.bar", selected: draft.mode == .friend && draft.competition == .leaderboard, id: "leaderboard") { draft.mode = .friend; draft.competition = .leaderboard }
             }
-        }
+        }.floodlightHero()
     }
     private func choice(_ title: String, detail: String, symbol: String, selected: Bool, id: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            HStack(spacing: 16) {
-                Image(systemName: symbol).font(.title3).frame(width: choiceSymbolWidth).accessibilityHidden(true)
+            HStack(spacing: 12) {
+                FloodlightCreationIcon(symbol: symbol, size: 40)
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(title).font(.headline)
-                    Text(detail).font(.subheadline).foregroundStyle(SignalCreationTheme.textSecondary)
+                    Text(title).floodlightFont(16, weight: .semibold)
+                    Text(detail).floodlightFont(13.5, weight: .medium).foregroundStyle(Floodlight.heroMuted)
                 }.frame(maxWidth: .infinity, alignment: .leading)
-                Image(systemName: selected ? "checkmark.circle.fill" : "circle").foregroundStyle(selected ? SignalCreationTheme.accent : SignalCreationTheme.textSecondary).accessibilityHidden(true)
-            }.foregroundStyle(SignalCreationTheme.textPrimary).padding(20)
-                .background(SignalCreationTheme.soft, in: RoundedRectangle(cornerRadius: 24))
-                .overlay { RoundedRectangle(cornerRadius: 24).stroke(selected ? SignalCreationTheme.accent : .clear, lineWidth: 1.5) }
-                .contentShape(RoundedRectangle(cornerRadius: 24))
+                Image(systemName: selected ? "checkmark.circle.fill" : "circle").font(.system(size: 21, weight: .medium))
+                    .foregroundStyle(selected ? Floodlight.link : Floodlight.heroMuted).accessibilityHidden(true)
+            }.foregroundStyle(Floodlight.ink).padding(.horizontal, 15).padding(.vertical, 20)
+                .contentShape(Rectangle())
         }.buttonStyle(.plain).accessibilityAddTraits(selected ? .isSelected : [])
             .accessibilityIdentifier("beta.create.type." + id)
     }
     @ViewBuilder private var activityStep: some View {
         // Only the activities the server allows for this kind of challenge.
         // A personal distance goal is Outdoor runs.
-        SignalActivityChoices(selection: $draft.metric,
-                              metrics: draft.mode == .personal ? draft.metrics.sorted { $0 == .distance && $1 != .distance } : draft.metrics) { metric in
-            draft.mode == .personal && metric == .distance ? "Outdoor runs" : metric.title
-        }
+        VStack(alignment: .leading, spacing: 13) {
+            FloodlightCreationActivityChoices(selection: $draft.metric,
+                                  metrics: draft.mode == .personal ? draft.metrics.sorted { $0 == .distance && $1 != .distance } : draft.metrics) { metric in
+                draft.mode == .personal && metric == .distance ? "Outdoor runs" : metric.title
+            }
         if draft.unavailable {
             Text("Activity not available yet. Choose another activity to continue.").font(.subheadline)
         } else {
@@ -187,9 +201,20 @@ struct ChallengeV1Create: View {
                     }.buttonStyle(SignalCreationTextActionStyle())
                 }
             } else {
-                Text(draft.policy.hasTarget ? "Everyone chooses their goal in the lobby." : draft.policy.scoring).font(.subheadline)
+                Rectangle().fill(Floodlight.line).frame(height: 1)
+                HStack(spacing: 12) {
+                    HStack(spacing: 5) {
+                        FloodlightOrb(slot: 0, initials: ownInitials, size: 34)
+                        FloodlightOrb(slot: 1, initials: "+", size: 34, waiting: true)
+                        FloodlightOrb(slot: 2, initials: "+", size: 34, waiting: true)
+                    }
+                    Text(draft.policy.hasTarget ? "Everyone chooses their goal in the lobby." : draft.policy.scoring)
+                        .floodlightFont(13.5, weight: .medium).foregroundStyle(Floodlight.heroMuted)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
         }
+        }.padding(15).floodlightHero()
         datesSummary
     }
     private func inputFocus(_ focused: Bool, id: String) {
@@ -197,7 +222,7 @@ struct ChallengeV1Create: View {
         else if focusedInput == id { focusedInput = nil }
     }
     private var datesSummary: some View {
-        SignalCreationDateCard(start: draft.start, duration: draft.duration, calendar: draft.calendar, timeZoneID: draft.zone) { editor = .dates }
+        FloodlightCreationDateCard(start: draft.start, duration: draft.duration, calendar: draft.calendar, timeZoneID: draft.zone) { editor = .dates }
     }
     private var dateRange: String {
         let formatter = DateFormatter()
@@ -254,6 +279,84 @@ struct ChallengeV1Create: View {
             .modifier(SignalCircleAction()).disabled(disabled).accessibilityIdentifier(id)
     }
     @ViewBuilder private var reviewStep: some View {
+        if draft.mode == .friend, draft.competition == .goal {
+            friendReview
+        } else { retainedReview }
+    }
+    private var ownInitials: String {
+        FloodlightOrb.initials(profile?.displayName ?? profile?.handle ?? "You")
+    }
+    @ViewBuilder private var friendReview: some View {
+        if let window = draft.window {
+            let layout = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 12)) : AnyLayout(HStackLayout(spacing: 12))
+            layout {
+                VStack(alignment: .leading, spacing: 1) {
+                    FloodlightLabel("Simulated amount")
+                    Text(LiveChallengePresentation.money(window.amountCents)).floodlightFont(56, weight: .semibold, condensed: true, maxScale: 1.5)
+                        .foregroundStyle(Floodlight.ink)
+                    Text("each · Fee $0").floodlightFont(13.5, weight: .medium).foregroundStyle(Floodlight.heroMuted)
+                    Button("Edit") { editor = .amount }.floodlightFont(13.5, weight: .semibold)
+                        .buttonStyle(.plain).foregroundStyle(Floodlight.link).frame(minHeight: 32, alignment: .leading)
+                        .accessibilityLabel("Edit simulated amount").accessibilityIdentifier("beta.create.edit-amount")
+                }.frame(maxWidth: .infinity, alignment: .leading)
+                VStack(spacing: 4) {
+                    FloodlightCreationPot(cents: window.amountCents, initials: ownInitials, caption: true).frame(width: 115)
+                    Text("Just you so far").floodlightFont(12, weight: .semibold).foregroundStyle(Floodlight.heroMuted)
+                }
+            }.padding(15).floodlightHero().accessibilityElement(children: .contain).accessibilityIdentifier("beta.create.amount-card")
+            Text("No real money moves. Nothing can be paid out or redeemed.")
+                .floodlightFont(13, weight: .medium).foregroundStyle(Floodlight.muted).fixedSize(horizontal: false, vertical: true)
+                .padding(.horizontal, 6)
+            VStack(spacing: 0) {
+                HStack(spacing: 12) {
+                    FloodlightCreationIcon(symbol: draft.metric.symbol)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(draft.metric.title).floodlightFont(15, weight: .semibold).foregroundStyle(Floodlight.ink)
+                        Text(compactDateRange + " · " + FloodlightCreationDateCard.zoneName(draft.zone))
+                            .floodlightFont(12.5, weight: .medium).foregroundStyle(Floodlight.muted).fixedSize(horizontal: false, vertical: true)
+                    }.frame(maxWidth: .infinity, alignment: .leading)
+                    Button("Edit") { draft.back() }.floodlightFont(13, weight: .semibold).foregroundStyle(Floodlight.link)
+                        .buttonStyle(.plain).frame(minWidth: 32, minHeight: 44)
+                        .accessibilityLabel("Edit goal and dates").accessibilityIdentifier("beta.create.edit-goal")
+                }.padding(.horizontal, 15).padding(.vertical, 9)
+                Rectangle().fill(Floodlight.line).frame(height: 1)
+                HStack(spacing: 12) {
+                    FloodlightCreationIcon(symbol: "lock")
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Private challenge").floodlightFont(15, weight: .semibold).foregroundStyle(Floodlight.ink)
+                        Text("Only people you select can join.").floodlightFont(12.5, weight: .medium).foregroundStyle(Floodlight.muted)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }.frame(maxWidth: .infinity, alignment: .leading)
+                }.padding(.horizontal, 15).padding(.vertical, 9)
+            }.floodlightCard()
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: typeSize.isAccessibilitySize ? 1 : 2), spacing: 8) {
+                ForEach(FloodlightChallengeFacts.outcomes(pair: false)) { outcome in
+                    VStack(spacing: 4) {
+                        FloodlightOutcomePicture(outcome: outcome.kind, pair: false).frame(width: 72)
+                        Text(outcome.title).floodlightFont(12.5, weight: .semibold).foregroundStyle(Floodlight.ink)
+                        Text(outcome.short).floodlightFont(12, weight: .medium).foregroundStyle(Floodlight.muted)
+                    }.multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: .infinity).padding(.horizontal, 8).padding(.vertical, 6)
+                        .floodlightCard(radius: 18, fill: outcome.kind == .unconfirmed ? Floodlight.unconfirmedWash : Floodlight.card,
+                                        dashedEdge: outcome.kind == .unconfirmed ? Floodlight.unconfirmed : nil)
+                }
+            }
+            DisclosureGroup("Full challenge rules") {
+                ChallengeAgreementText(policy: draft.policy, window: window, minimum: 2, sourcePolicy: health != nil ? draft.source?.identifier : nil)
+                    .padding(.horizontal, 14).padding(.bottom, 14)
+            }.disclosureGroupStyle(FloodlightCreationRulesStyle()).accessibilityIdentifier("beta.create.rules")
+        }
+    }
+    private var compactDateRange: String {
+        guard let duration = draft.duration, let last = draft.calendar.date(byAdding: .day, value: duration - 1, to: draft.start) else { return dateRange }
+        let formatter = DateFormatter(); formatter.calendar = draft.calendar; formatter.timeZone = draft.calendar.timeZone
+        formatter.setLocalizedDateFormatFromTemplate("MMM d")
+        let start = formatter.string(from: draft.start)
+        let sameMonth = draft.calendar.component(.month, from: draft.start) == draft.calendar.component(.month, from: last)
+        let end = sameMonth ? String(draft.calendar.component(.day, from: last)) : formatter.string(from: last)
+        return start + "–" + end + ", " + String(draft.calendar.component(.year, from: last))
+    }
+    @ViewBuilder private var retainedReview: some View {
         if let window = draft.window {
             VStack(alignment: .leading, spacing: 8) {
                 if draft.mode == .personal, let value = draft.metric.parse(draft.target) {
@@ -353,9 +456,9 @@ struct ChallengeV1Create: View {
             HStack {
                 Text(primaryTitle)
                 if showsForwardArrow { Image(systemName: "arrow.right").accessibilityHidden(true) }
-            }.font(.headline).frame(maxWidth: .infinity, minHeight: 50)
+            }
         }
-        .buttonStyle(LivePrimaryButtonStyle())
+        .buttonStyle(FloodlightPrimaryButtonStyle())
         .disabled(blocked || (store.pending == nil && draft.step == .review && !draft.needsReview && (store.access?.ageConfirmed != true || draft.mode == .personal && (!draft.consent || !ready || draft.commits && !draft.commitmentSaved))))
         .accessibilityIdentifier(store.pending != nil ? "beta.create.retry" : isReviewAction && draft.mode == .personal ? "beta.personal.preview" : draft.step == .review ? (draft.mode == .personal ? "beta.personal.commit" : "beta.create.submit") : "beta.create.continue")
     }

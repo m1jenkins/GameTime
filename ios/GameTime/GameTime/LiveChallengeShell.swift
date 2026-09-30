@@ -26,6 +26,7 @@ struct LiveChallengeShell: View {
     @Environment(\.challengeHealthFlow) private var health
     @Environment(\.livePersonalRouteCoordinator) private var personalRouteCoordinator
     @Environment(FriendsStore.self) private var friends: FriendsStore?
+    @AppStorage(AppAppearance.storageKey) private var appearance = AppAppearance.system
     @State private var selection = 0
     @State private var homePath: [UUID] = []
     @State private var libraryPath: [UUID] = []
@@ -53,14 +54,14 @@ struct LiveChallengeShell: View {
                 NavigationStack(path: $homePath) {
                     LiveHomeView(store: store, profile: profile, serviceAvailable: serviceAvailable,
                                  viewGoal: { homePath.append($0) }, showRecord: { selection = 2 },
-                                 create: { create = true }, library: { selection = 1 })
+                                 create: beginCreation, library: { selection = 1 })
                         .navigationDestination(for: UUID.self) { LiveGoalDetail(store: store, id: $0) }
                 }
             }
             Tab("Challenges", systemImage: "flag", value: 1) {
                 NavigationStack(path: $libraryPath) {
                     LiveLibraryView(store: store, filter: $filter, serviceAvailable: serviceAvailable,
-                                    create: { create = true }, entry: { entry = true }, open: { libraryPath.append($0) })
+                                    create: beginCreation, entry: { entry = true }, open: { libraryPath.append($0) })
                         .navigationDestination(for: UUID.self) { LiveGoalDetail(store: store, id: $0) }
                 }
             }
@@ -71,25 +72,30 @@ struct LiveChallengeShell: View {
                 }
             }
         }
-        .tint(SignalTheme.accent)
+        .tint(Floodlight.link)
+    }
+
+    private func beginCreation() {
+        // Keep the existing confirmation path reachable when the empty library
+        // has no utility rows. Admission still requires the person's own choice.
+        if serviceAvailable, store.access?.ageConfirmed != true { entry = true }
+        else { create = true }
     }
 
     private var presentedShell: some View {
         tabs
         .background(SignalTheme.canvas.ignoresSafeArea())
-        // The shell follows the phone's appearance. Creation, Settings (with
-        // Personal history) and the invitation-link sheet have no dark design
-        // yet, so each presentation keeps asking for light. Connect Apple
-        // Health, shown first the first time someone creates, has both.
+        // System follows the iPhone until the person saves Light or Dark.
+        .preferredColorScheme(appearance.colorScheme)
         .fullScreenCover(isPresented: $create, onDismiss: { personalRouteCoordinator?.allowPresentation() }) {
             if serviceAvailable {
                 AppleHealthIntroductionGate {
-                    ChallengeV1Create(store: store, allowed: creatablePolicies, onGoHome: {
+                    ChallengeV1Create(store: store, allowed: creatablePolicies, profile: profile, onGoHome: {
                         selection = 0
                         homePath = []
                         libraryPath = []
                         recordPath = []
-                    }).preferredColorScheme(.light)
+                    }).preferredColorScheme(appearance.colorScheme)
                 }
             } else {
                 LiveUnavailableSheet(title: "New challenges aren’t open yet", message: "You can refresh your saved challenges or return later.")
@@ -106,7 +112,7 @@ struct LiveChallengeShell: View {
                         Button("Sign out") { Task { await logout() } }.buttonStyle(LiveSecondaryButtonStyle())
                     }.padding(SignalTheme.contentInset).frame(maxHeight: .infinity, alignment: .top).background(SignalTheme.canvas)
                 }
-            }.presentationDragIndicator(.visible).tint(SignalTheme.accent).preferredColorScheme(.light)
+            }.presentationDragIndicator(.hidden).tint(SignalTheme.accent).preferredColorScheme(appearance.colorScheme)
         }
         .sheet(isPresented: $entry, onDismiss: { personalRouteCoordinator?.allowPresentation() }) {
             NavigationStack {
@@ -141,16 +147,17 @@ struct LiveChallengeShell: View {
         }
         .task(id: store.actor) { await store.watchVisibility() }
         .onChange(of: store.challenges.count) { applyInitialRoute() }
+        .onChange(of: store.homeState) { applyInitialRoute() }
         .onAppear { applyInitialRoute(); if !invitation.link.isEmpty { entry = true; selection = 1 } }
         .environment(\.challengeInvitationLinks, invitation.links)
     }
 
     private func applyInitialRoute() {
         #if DEBUG
-        guard !initialRouteApplied, LiveDesignFixtures.enabled, !store.challenges.isEmpty else { return }
+        guard !initialRouteApplied, LiveDesignFixtures.enabled, store.homeState == .content || store.homeState == .empty else { return }
         initialRouteApplied = true
         let args = ProcessInfo.processInfo.arguments
-        if args.contains("--live-screen=challenges") { selection = 1 }
+        if args.contains("--live-screen=challenges") || args.contains("--live-screen=challenges-empty") { selection = 1 }
         if args.contains("--live-screen=you") || args.contains("--live-screen=friends") { selection = 2 }
         if args.contains("--live-screen=goal") || args.contains("--live-screen=rules") || args.contains("--live-screen=pot") {
             homePath = [LiveDesignFixtures.activeID]
@@ -383,175 +390,304 @@ struct LiveLibraryView: View {
     let open: (UUID) -> Void
     @Environment(\.challengeHealthFlow) private var health
     @Environment(\.dynamicTypeSize) private var typeSize
+    @Environment(\.colorScheme) private var scheme
     @State private var declining: UUID?
-    private var grouped: [(String, ChallengeV1Section)] { [("Active", .active), ("Invited", .action), ("Upcoming", .upcoming), ("Finished", .history)] }
+    @State private var scrolled = false
+
+    private var grouped: [(String, ChallengeV1Section)] {
+        [("Needs your attention", .action), ("Active", .active), ("Upcoming", .upcoming), ("Finished", .history)]
+    }
+    private var featuredID: UUID? {
+        store.sections[.active]?.rows.first { ["active", "syncing"].contains($0.status) && $0.own(store.actor)?.exited != true }?.id
+    }
+
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 19) {
-                VStack(spacing: 16) {
-                    HStack {
-                        Text("Challenges").liveFont(27, weight: .bold).tracking(-1.15)
+        FloodlightScrollPage(scrolled: $scrolled) { topInset in
+            VStack(alignment: .leading, spacing: 0) {
+                VStack(alignment: .leading, spacing: 0) {
+                    HStack(spacing: 10) {
+                        FloodlightTitle("Challenges", size: 38).foregroundStyle(Floodlight.ink)
                             .lineLimit(1).minimumScaleFactor(0.7)
-                        Spacer()
-                        Button(action: create) {
-                            Image(systemName: "plus").font(.system(size: 23)).foregroundStyle(SignalTheme.onAccent)
-                                .frame(width: 44, height: 44).background(SignalTheme.accentFill, in: Circle())
-                        }.accessibilityLabel("Create a challenge").accessibilityIdentifier("beta.create.open")
+                        Spacer(minLength: 4)
+                        FloodlightNavButton(symbol: "plus", label: "Create a challenge", action: create)
+                            .accessibilityIdentifier("beta.create.open")
                     }
-                    // The three filters share one row until large text needs the full width.
-                    let filters = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(spacing: 3)) : AnyLayout(HStackLayout(spacing: 3))
-                    filters {
-                        ForEach(["All", "Invited", "Finished"], id: \.self) { value in
-                            Button { filter = value } label: {
-                                HStack(spacing: 6) {
-                                    Text(value)
-                                    if value == "Invited", invitationCount > 0 {
-                                        Text(invitationCount.formatted()).liveFont(10, weight: .semibold)
-                                            .padding(.horizontal, 5).padding(.vertical, 2).background(SignalTheme.divider, in: RoundedRectangle(cornerRadius: 6))
+                    .padding(.horizontal, 18).padding(.top, topInset + 6)
+
+                    if store.homeState == .content {
+                        filters.padding(.horizontal, 16).padding(.top, 12)
+                    } else if store.homeState == .empty && serviceAvailable {
+                        LiveLibraryEmptyState(create: create).padding(.horizontal, 16).padding(.top, 22)
+                    } else {
+                        LiveEmptyState(store: store, serviceAvailable: serviceAvailable, create: create)
+                            .padding(.horizontal, 16).padding(.top, 22)
+                    }
+
+                    ForEach(grouped, id: \.0) { title, section in
+                        if filter == "All" || filter == title || filter == "Invited" && section == .action {
+                            if let state = store.sections[section], !visibleRows(state.rows).isEmpty || state.cursor != nil {
+                                let rows = visibleRows(state.rows)
+                                VStack(spacing: 12) {
+                                    sectionHeading(title, rows: rows, section: section, hasMore: state.cursor != nil)
+                                    ForEach(rows) { row in
+                                        if isInvitation(row) {
+                                            invitationCard(row)
+                                        } else {
+                                            Button { open(row.id) } label: {
+                                                LiveLibraryCard(row: row, actor: store.actor, highlighted: row.id == featuredID)
+                                            }
+                                            .buttonStyle(.plain)
+                                            .accessibilityIdentifier(row.id == featuredID ? "live.library.active" : "live.library.row." + row.id.uuidString.lowercased())
+                                        }
                                     }
-                                }.liveFont(12, weight: .semibold).frame(maxWidth: .infinity, minHeight: 44)
-                                    .foregroundStyle(filter == value ? SignalTheme.accent : SignalTheme.textSecondary)
-                                    .background(filter == value ? SignalTheme.surface : Color.clear, in: RoundedRectangle(cornerRadius: 13))
-                            }.buttonStyle(.plain).accessibilityIdentifier("live.filter." + value.lowercased())
-                                .accessibilityAddTraits(filter == value ? .isSelected : [])
-                        }
-                    }.padding(3).background(SignalTheme.soft, in: RoundedRectangle(cornerRadius: 16))
-                }
-                if store.homeState != .content { LiveEmptyState(store: store, serviceAvailable: serviceAvailable, create: create) }
-                ForEach(grouped, id: \.0) { title, section in
-                    if filter == "All" || filter == title {
-                        if let state = store.sections[section], !visibleRows(state.rows, section: section).isEmpty || state.cursor != nil {
-                            let rows = visibleRows(state.rows, section: section)
-                            VStack(spacing: 10) {
-                                let sectionLayout = typeSize.isAccessibilitySize
-                                    ? AnyLayout(VStackLayout(alignment: .leading, spacing: 6))
-                                    : AnyLayout(HStackLayout())
-                                sectionLayout {
-                                    Text(section == .action && rows.contains(where: { $0.status == "review" }) ? "Needs your attention" : title)
-                                        .liveFont(15, weight: .semibold).tracking(-0.25)
-                                    if !typeSize.isAccessibilitySize { Spacer() }
-                                    Text("\(rows.count) \(section == .action && rows.allSatisfy(isInvitation) ? (rows.count == 1 ? "invitation" : "invitations") : (rows.count == 1 ? "challenge" : "challenges"))\(state.cursor == nil ? "" : "+")")
-                                        .liveFont(11).foregroundStyle(SignalTheme.textSecondary)
-                                }
-                                ForEach(rows) { row in
-                                    if row.status == "consent_pending", row.own(store.actor)?.consented == false {
-                                        invitationCard(row)
-                                    } else {
-                                        Button { open(row.id) } label: { LiveLibraryCard(row: row, actor: store.actor) }.buttonStyle(.plain)
+                                    if state.cursor != nil {
+                                        Button("Load more") { Task { await store.loadMore(section) } }
+                                            .frame(minHeight: 44).foregroundStyle(Floodlight.link).disabled(store.busy)
                                     }
                                 }
-                                if state.cursor != nil {
-                                    Button("Load more") { Task { await store.loadMore(section) } }
-                                        .frame(minHeight: 44).foregroundStyle(SignalTheme.accent).disabled(store.busy)
-                                }
+                                .padding(.horizontal, 16).padding(.top, 22)
                             }
                         }
                     }
-                }
-                if filter == "Invited", invitationCount == 0, store.homeState == .content {
-                    Text("No invitations waiting.").font(.subheadline).foregroundStyle(SignalTheme.textSecondary)
-                }
-                if filter == "Finished", store.sections[.history]?.rows.isEmpty == true, store.homeState == .content {
-                    Text("No finished challenges yet.").font(.subheadline).foregroundStyle(SignalTheme.textSecondary)
-                }
-                LiveRecoveryView(store: store)
-                if store.access?.ageConfirmed != true || store.linksAvailable || !store.communities.isEmpty {
-                    Button(action: entry) { Label(store.access?.ageConfirmed == true ? "Use an invitation link" : "Set up challenge access", systemImage: store.access?.ageConfirmed == true ? "link" : "person.crop.circle.badge.checkmark").frame(minHeight: 44) }
-                        .liveFont(13, weight: .medium).foregroundStyle(SignalTheme.accent)
-                }
-            }.padding(.horizontal, SignalTheme.contentInset).padding(.top, 13).padding(.bottom, 24)
-        }.background(SignalTheme.canvas).toolbar(.hidden, for: .navigationBar)
-            .refreshable { await store.refresh(); await health?.refresh() }
-            .confirmationDialog("Decline this invitation?", isPresented: Binding(get: { declining != nil }, set: { if !$0 { declining = nil } }), titleVisibility: .visible) {
-                Button("Decline invitation", role: .destructive) {
-                    if let id = declining, let row = store.challenges.first(where: { $0.id == id }), store.isFresh(row), isInvitation(row) {
-                        Task { await store.submit(op: "leave", challenge: row) }
+                    if filter == "Invited", invitationCount == 0, store.homeState == .content {
+                        Text("No invitations waiting.").floodlightFont(14).foregroundStyle(Floodlight.muted)
+                            .padding(.horizontal, 20).padding(.top, 22)
                     }
-                    declining = nil
+                    if filter == "Finished", store.sections[.history]?.rows.isEmpty == true, store.homeState == .content {
+                        Text("No finished challenges yet.").floodlightFont(14).foregroundStyle(Floodlight.muted)
+                            .padding(.horizontal, 20).padding(.top, 22)
+                    }
                 }
-                Button("Keep invitation", role: .cancel) { declining = nil }
-            } message: { Text("You won’t join this challenge. Your existing agreements stay unchanged.") }
-            .onChange(of: store.actor) { declining = nil }
+                .padding(.bottom, 18)
+                .background(alignment: .top) {
+                    FloodlightSky().frame(height: store.homeState == .empty ? 500 : 620)
+                }
+                VStack(alignment: .leading, spacing: 12) {
+                    LiveRecoveryView(store: store)
+                    if store.homeState == .content,
+                       store.access?.ageConfirmed != true || store.linksAvailable || !store.communities.isEmpty {
+                        Button(action: entry) {
+                            Label(store.access?.ageConfirmed == true ? "Use an invitation link" : "Set up challenge access",
+                                  systemImage: store.access?.ageConfirmed == true ? "link" : "person.crop.circle.badge.checkmark")
+                                .frame(minHeight: 44)
+                        }
+                        .floodlightFont(13, weight: .medium).foregroundStyle(Floodlight.link)
+                    }
+                }
+                .padding(.horizontal, 16).padding(.bottom, 28)
+            }
+        }
+        .toolbar(.hidden, for: .navigationBar)
+        .refreshable { await store.refresh(); await health?.refresh() }
+        .confirmationDialog("Decline this invitation?", isPresented: Binding(get: { declining != nil }, set: { if !$0 { declining = nil } }), titleVisibility: .visible) {
+            Button("Decline invitation", role: .destructive) {
+                if let id = declining, let row = store.challenges.first(where: { $0.id == id }), store.isFresh(row), isInvitation(row) {
+                    Task { await store.submit(op: "leave", challenge: row) }
+                }
+                declining = nil
+            }
+            Button("Keep invitation", role: .cancel) { declining = nil }
+        } message: { Text("You won’t join this challenge. Your existing agreements stay unchanged.") }
+        .onChange(of: store.actor) { declining = nil }
+    }
+
+    private var filters: some View {
+        let layout = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(spacing: 3)) : AnyLayout(HStackLayout(spacing: 3))
+        return layout {
+            ForEach(["All", "Invited", "Finished"], id: \.self) { value in
+                Button { filter = value } label: {
+                    HStack(spacing: 6) {
+                        Text(value)
+                        if value == "Invited", invitationCount > 0 {
+                            Text(invitationCount.formatted()).floodlightFont(11, weight: .bold)
+                                .frame(minWidth: 19, minHeight: 19)
+                                .background(Capsule().fill(scheme == .dark ? Floodlight.well : Floodlight.card))
+                                .overlay(Capsule().strokeBorder(scheme == .dark ? Floodlight.wellEdge : Floodlight.cardEdge, lineWidth: 1))
+                        }
+                    }
+                    .floodlightFont(13.5, weight: .semibold).foregroundStyle(Floodlight.ink)
+                    .frame(maxWidth: .infinity, minHeight: 38)
+                    .background {
+                        if filter == value {
+                            Capsule().fill(scheme == .dark ? Floodlight.well : Floodlight.card)
+                                .overlay(Capsule().strokeBorder(scheme == .dark ? Floodlight.wellEdge : Floodlight.cardEdge, lineWidth: 1))
+                        }
+                    }
+                    .frame(minHeight: 44).contentShape(Capsule())
+                }
+                .buttonStyle(.plain).accessibilityIdentifier("live.filter." + value.lowercased())
+                .accessibilityAddTraits(filter == value ? .isSelected : [])
+            }
+        }
+        .padding(3).background(Capsule().fill(scheme == .dark ? Floodlight.card : Floodlight.well))
+        .overlay(Capsule().strokeBorder(scheme == .dark ? Floodlight.cardEdge : Floodlight.wellEdge, lineWidth: 1))
+    }
+
+    private func sectionHeading(_ title: String, rows: [ChallengeV1], section: ChallengeV1Section, hasMore: Bool) -> some View {
+        let layout = typeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 6)) : AnyLayout(HStackLayout(alignment: .firstTextBaseline))
+        return layout {
+            FloodlightTitle(title, size: 21).foregroundStyle(Floodlight.ink)
+            if !typeSize.isAccessibilitySize { Spacer(minLength: 8) }
+            Text("\(rows.count) \(section == .action && rows.allSatisfy(isInvitation) ? (rows.count == 1 ? "invitation" : "invitations") : (rows.count == 1 ? "challenge" : "challenges"))\(hasMore ? "+" : "")")
+                .floodlightFont(12.5, weight: .medium).foregroundStyle(Floodlight.muted)
+        }
+        .padding(.horizontal, 4)
     }
     private func isInvitation(_ row: ChallengeV1) -> Bool { row.status == "consent_pending" && row.own(store.actor)?.consented == false }
-    private func visibleRows(_ rows: [ChallengeV1], section: ChallengeV1Section) -> [ChallengeV1] {
-        filter == "Invited" ? rows.filter(isInvitation) : rows
-    }
-    private var invitationCount: Int { store.sections[.action]?.rows.filter { $0.status == "consent_pending" && $0.own(store.actor)?.consented == false }.count ?? 0 }
+    private func visibleRows(_ rows: [ChallengeV1]) -> [ChallengeV1] { filter == "Invited" ? rows.filter(isInvitation) : rows }
+    private var invitationCount: Int { store.sections[.action]?.rows.filter(isInvitation).count ?? 0 }
+
     private func invitationCard(_ row: ChallengeV1) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            VStack(alignment: .leading, spacing: 5) {
-                let titleLayout = typeSize.isAccessibilitySize
-                    ? AnyLayout(VStackLayout(alignment: .leading, spacing: 8))
-                    : AnyLayout(HStackLayout(spacing: 10))
-                titleLayout {
-                    Text(LiveChallengePresentation.title(row)).liveFont(18, weight: .bold).tracking(-0.55)
-                    if !typeSize.isAccessibilitySize { Spacer(minLength: 0) }
-                    LiveStateChip(text: "Invited", neutral: true)
+        VStack(alignment: .leading, spacing: 10) {
+            let titleLayout = typeSize.isAccessibilitySize
+                ? AnyLayout(VStackLayout(alignment: .leading, spacing: 8)) : AnyLayout(HStackLayout(alignment: .top, spacing: 10))
+            titleLayout {
+                VStack(alignment: .leading, spacing: 4) {
+                    FloodlightTitle(LiveChallengePresentation.title(row), size: 21).foregroundStyle(Floodlight.ink)
+                    Text("\(ChallengePresentation.dates(row)) · \(LiveChallengePresentation.goal(row, actor: store.actor).replacingOccurrences(of: " goal", with: "")) over \(row.config.days) days")
+                        .floodlightFont(12.5, weight: .medium).foregroundStyle(Floodlight.muted)
                 }
-                Text("\(ChallengePresentation.dates(row)) · \(LiveChallengePresentation.goal(row, actor: store.actor).replacingOccurrences(of: " goal", with: "")) over \(row.config.days) days")
-                    .liveFont(11).foregroundStyle(SignalTheme.textSecondary)
+                if !typeSize.isAccessibilitySize { Spacer(minLength: 0) }
+                Text("Invited").floodlightFont(12, weight: .semibold).foregroundStyle(Floodlight.ink)
+                    .padding(.horizontal, 10).padding(.vertical, 5)
+                    .background(Capsule().fill(Floodlight.well))
+                    .overlay(Capsule().strokeBorder(Floodlight.wellEdge, lineWidth: 1))
             }
             if let person = row.members.first(where: { $0.actorId == row.creatorId }) {
-                HStack(spacing: 8) { LiveAvatar(username: person.username, actorID: person.actorId, size: 27); Text("From \(person.username)").liveFont(11).foregroundStyle(SignalTheme.textSecondary) }
+                HStack(spacing: 8) {
+                    FloodlightOrb(slot: 2, initials: FloodlightOrb.initials(person.username), size: 24)
+                    Text("From \(person.username)").floodlightFont(12, weight: .medium).foregroundStyle(Floodlight.muted)
+                }
             }
-            let actions = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(spacing: 9)) : AnyLayout(HStackLayout(spacing: 9))
+            let actions = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(spacing: 8)) : AnyLayout(HStackLayout(spacing: 8))
             actions {
-                Button { open(row.id) } label: { HStack(spacing: 8) { Text("Accept"); Image(systemName: "arrow.right") }.liveFont(13, weight: .semibold) }
-                    .buttonStyle(LivePrimaryButtonStyle(height: 44, radius: 13)).accessibilityLabel("Accept: review invitation")
-                Button("Decline") { declining = row.id }
-                    .liveFont(13, weight: .semibold).frame(maxWidth: .infinity, minHeight: 44)
-                    .background(SignalTheme.soft, in: RoundedRectangle(cornerRadius: 13)).foregroundStyle(SignalTheme.textSecondary)
+                Button { open(row.id) } label: {
+                    HStack(spacing: 9) {
+                        Text("Review and agree").floodlightFont(14, weight: .bold)
+                        Image(systemName: "arrow.right").font(.system(size: 16, weight: .semibold)).accessibilityHidden(true)
+                    }
+                }
+                .buttonStyle(FloodlightPrimaryButtonStyle(height: 40))
+                .frame(minHeight: 44)
+                .accessibilityLabel("Review and agree").accessibilityIdentifier("live.library.review")
+                Button { declining = row.id } label: {
+                    Text("Decline").floodlightFont(14, weight: .semibold)
+                        .lineLimit(1).fixedSize(horizontal: true, vertical: true)
+                        .padding(.horizontal, 14).frame(maxWidth: .infinity, minHeight: 40)
+                        .foregroundStyle(Floodlight.ink)
+                        .background(Capsule().fill(Floodlight.well))
+                        .overlay(Capsule().strokeBorder(Floodlight.wellEdge, lineWidth: 1))
+                }
+                    .buttonStyle(.plain)
+                    .frame(width: typeSize.isAccessibilitySize ? nil : 76)
+                    .frame(minHeight: 44)
                     .disabled(!store.isFresh(row) || store.busy || store.pending != nil)
+                    .accessibilityIdentifier("live.library.decline")
             }
-        }.padding(.horizontal, 17).padding(.vertical, 16).modifier(LiveCardModifier(radius: 20, material: true))
+        }
+        .padding(14).floodlightCard()
     }
 }
 
 struct LiveLibraryCard: View {
     let row: ChallengeV1
     let actor: UUID?
+    var highlighted = false
     @Environment(\.dynamicTypeSize) private var typeSize
+    @Environment(FriendsStore.self) private var friends: FriendsStore?
     private var isActive: Bool { ["active", "syncing"].contains(row.status) && row.own(actor)?.exited != true }
-    private var people: [ChallengeV1.Member] { row.members.filter { $0.actorId != actor && $0.selected && !$0.exited } }
+    private var people: [ChallengeV1.Member] { FloodlightChallengeFacts.people(row, actor: actor) }
+    private var slots: [UUID: Int] { FloodlightChallengeFacts.slots(row, actor: actor) }
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            HStack(spacing: 10) {
-                Text(LiveChallengePresentation.title(row)).liveFont(18, weight: .bold).tracking(-0.55)
-                Spacer(minLength: 0)
-                Image(systemName: "chevron.right").font(.system(size: 13)).foregroundStyle(SignalTheme.textSecondary)
-            }
-            Text(ChallengePresentation.dates(row) + (isActive ? " · " + LiveChallengePresentation.ends(row) : ""))
-                .liveFont(11).foregroundStyle(SignalTheme.textSecondary).padding(.top, 5)
-            if isActive {
-                let progressLayout = typeSize.isAccessibilitySize
-                    ? AnyLayout(VStackLayout(alignment: .leading, spacing: 8))
-                    : AnyLayout(HStackLayout())
-                progressLayout {
-                    LiveMetric(value: LiveChallengePresentation.value(row.own(actor).flatMap { row.savedScore($0) }, metric: row.format.metric),
-                               unit: "/ " + LiveChallengePresentation.goal(row, actor: actor).replacingOccurrences(of: " goal", with: ""), size: 47)
-                    if !typeSize.isAccessibilitySize { Spacer(minLength: 2) }
-                    chip
-                }.padding(.top, 10)
-                LiveProgressRail(progress: LiveChallengePresentation.progress(row, actor: actor), height: 12).padding(.top, 10)
-                Text(LiveChallengePresentation.remaining(row, actor: actor)).liveFont(11, weight: .semibold).padding(.top, 7)
-            }
-            let footerLayout = typeSize.isAccessibilitySize
-                ? AnyLayout(VStackLayout(alignment: .leading, spacing: 8))
-                : AnyLayout(HStackLayout())
-            footerLayout {
-                if !people.isEmpty { LiveFaceStack(people: people) }
-                else if let own = row.own(actor) { LiveAvatar(username: own.username, actorID: own.actorId, size: 27) }
-                if !typeSize.isAccessibilitySize { Spacer(minLength: 10) }
-                if isActive { Text("\(LiveChallengePresentation.money(row.config.amountCents)) sim · fee $0").liveFont(10).foregroundStyle(SignalTheme.textSecondary) }
-                else { chip }
-            }.padding(.top, 13)
-        }.foregroundStyle(SignalTheme.textPrimary).padding(.horizontal, 17).padding(.vertical, 16)
-            .modifier(LiveCardModifier(radius: isActive ? 24 : 20, material: !isActive))
+        Group {
+            if highlighted { card.floodlightHero() }
+            else { card.floodlightCard() }
+        }
+        .foregroundStyle(Floodlight.ink)
     }
-    private var chip: some View {
-        let state = LiveChallengePresentation.state(row, actor: actor)
-        return LiveStateChip(text: state, warning: state == "Behind" || state == "Missed", neutral: ["No update yet", "Starts soon", "Closed early", "Didn’t count", "Choosing goals"].contains(state))
+    private var card: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .top, spacing: 10) {
+                VStack(alignment: .leading, spacing: 4) {
+                    FloodlightTitle(LiveChallengePresentation.title(row), size: 21)
+                    Text(ChallengePresentation.dates(row) + (isActive ? " · " + LiveChallengePresentation.ends(row) : ""))
+                        .floodlightFont(12.5, weight: .medium).foregroundStyle(Floodlight.muted)
+                }
+                Spacer(minLength: 0)
+                Image(systemName: "chevron.right").font(.system(size: 15, weight: .medium))
+                    .foregroundStyle(Floodlight.muted).padding(.top, 3).accessibilityHidden(true)
+            }
+            if isActive {
+                let layout = typeSize.isAccessibilitySize
+                    ? AnyLayout(VStackLayout(alignment: .leading, spacing: 12)) : AnyLayout(HStackLayout(alignment: .center, spacing: 12))
+                layout {
+                    if row.format.hasTarget, row.format.metric != .timed {
+                        FloodlightDial(kind: .mini, lanes: FloodlightChallengeFacts.lanes(row, actor: actor),
+                                       potCents: row.format.mode == .friend && !row.socialHidden ? FloodlightChallengeFacts.potCents(row) : nil)
+                            .frame(width: 112)
+                    }
+                    VStack(alignment: .leading, spacing: 6) {
+                        HStack(alignment: .firstTextBaseline, spacing: 5) {
+                            Text(LiveChallengePresentation.value(row.own(actor).flatMap { row.savedScore($0) }, metric: row.format.metric))
+                                .floodlightFont(40, weight: .semibold, condensed: true, maxScale: 1.5)
+                                .tracking(-0.8).lineLimit(1).minimumScaleFactor(0.7)
+                            Text("/ " + LiveChallengePresentation.goal(row, actor: actor).replacingOccurrences(of: " goal", with: ""))
+                                .floodlightFont(13, weight: .medium).foregroundStyle(Floodlight.muted)
+                        }
+                        Text(LiveChallengePresentation.remaining(row, actor: actor))
+                            .floodlightFont(12, weight: .medium).foregroundStyle(Floodlight.muted)
+                        ViewThatFits(in: .horizontal) {
+                            HStack(spacing: 8) { faces; amount }
+                            VStack(alignment: .leading, spacing: 6) { faces; amount }
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            } else {
+                HStack {
+                    faces
+                    Spacer(minLength: 8)
+                    LiveStateChip(text: LiveChallengePresentation.state(row, actor: actor), neutral: true)
+                }
+            }
+        }
+        .padding(14).frame(maxWidth: .infinity, alignment: .leading)
+    }
+    private var faces: some View {
+        FloodlightFaceStack(people: people.map { person in
+            let name = friends?.friends.first { $0.id == person.actorId }?.displayName ?? person.username
+            return (slot: slots[person.actorId] ?? 0, initials: FloodlightOrb.initials(name), badge: .none, waiting: false)
+        }, size: 24)
+        .accessibilityHidden(false)
+        .accessibilityLabel("\(people.count) participants")
+    }
+    private var amount: some View {
+        Text("\(LiveChallengePresentation.money(row.config.amountCents)) sim · fee $0")
+            .floodlightFont(12, weight: .medium).foregroundStyle(Floodlight.muted).fixedSize()
+    }
+}
+
+struct LiveLibraryEmptyState: View {
+    let create: () -> Void
+    private static let dialID = UUID()
+    var body: some View {
+        VStack(spacing: 8) {
+            FloodlightDial(kind: .mini, lanes: [.init(id: Self.dialID, slot: 0, fraction: nil, initials: "")])
+                .frame(width: 176)
+            FloodlightTitle("Your first challenge", size: 26).foregroundStyle(Floodlight.ink)
+                .multilineTextAlignment(.center).padding(.top, 4)
+            Text("Choose a goal and the dates that work for you.")
+                .floodlightFont(14, weight: .medium).foregroundStyle(Floodlight.muted)
+                .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: 248)
+            Button(action: create) { Label("Create a challenge", systemImage: "plus") }
+                .buttonStyle(FloodlightPrimaryButtonStyle()).padding(.top, 8)
+                .accessibilityIdentifier("live.library.empty.create")
+        }
+        .padding(.horizontal, 20).padding(.top, 22).padding(.bottom, 20)
+        .frame(maxWidth: .infinity).floodlightHero()
     }
 }
 

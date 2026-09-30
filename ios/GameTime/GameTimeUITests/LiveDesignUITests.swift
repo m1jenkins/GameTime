@@ -216,7 +216,7 @@ final class LiveDesignUITests: XCTestCase {
         defer { app.terminate() }
         let invited = app.buttons["live.filter.invited"]
         XCTAssertTrue(invited.waitForExistence(timeout: 10)); invited.tap()
-        let accept = app.buttons["Accept: review invitation"]
+        let accept = app.buttons["live.library.review"]
         XCTAssertTrue(accept.waitForExistence(timeout: 5)); accept.tap()
         let review = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "Review and agree")).firstMatch
         XCTAssertTrue(review.waitForExistence(timeout: 5))
@@ -285,9 +285,6 @@ final class LiveDesignUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "Alex Native")).firstMatch.waitForExistence(timeout: 5),
                       "The record must use the newly saved profile")
         app.buttons["profile.settings"].tap()
-        let account = settingsLink(app, "Account")
-        XCTAssertTrue(account.waitForExistence(timeout: 5)); bring(app, account); account.tap()
-        XCTAssertTrue(app.staticTexts["@alexnative"].waitForExistence(timeout: 5))
         let signOut = app.buttons["account-support.sign-out"]
         XCTAssertTrue(signOut.waitForExistence(timeout: 5)); signOut.tap()
         XCTAssertTrue(app.buttons["Sign in with Apple"].waitForExistence(timeout: 10))
@@ -422,12 +419,10 @@ final class LiveDesignUITests: XCTestCase {
             predicate: NSPredicate(format: "enabled == true"), object: refresh)], timeout: 10), .completed)
         let back = app.buttons["Back"]
         bring(app, back, upward: false); back.tap()
-        let privacy = settingsLink(app, "Sharing & privacy")
-        XCTAssertTrue(privacy.waitForExistence(timeout: 5)); privacy.tap()
-        XCTAssertTrue(app.staticTexts["Missing activity isn’t a loss"].waitForExistence(timeout: 5))
-        bring(app, back, upward: false); back.tap()
-        let account = settingsLink(app, "Account")
-        XCTAssertTrue(account.waitForExistence(timeout: 5)); bring(app, account); account.tap()
+        XCTAssertTrue(settingsLink(app, "Privacy Policy").waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["How GameTime handles your data"].exists)
+        XCTAssertTrue(settingsLink(app, "Beta Terms").exists)
+        XCTAssertTrue(settingsLink(app, "Contact support").exists)
         let delete = app.buttons["account-support.delete"]
         XCTAssertTrue(delete.waitForExistence(timeout: 5)); delete.tap()
         let confirmation = app.alerts["Delete your account?"]
@@ -437,7 +432,7 @@ final class LiveDesignUITests: XCTestCase {
         XCTAssertTrue(app.buttons["account-support.sign-out"].waitForExistence(timeout: 5))
         XCTAssertTrue(delete.isEnabled)
         XCTAssertFalse(confirmation.exists, "Cancel must leave the account intact without starting Apple confirmation")
-        XCTAssertTrue(app.staticTexts["@alexlee"].exists)
+        XCTAssertTrue(app.staticTexts["Appearance"].exists)
     }
 
     func testAnUpdateWeCanNeverSaveSaysWhyWithoutRefreshAdvice() {
@@ -614,8 +609,9 @@ final class LiveDesignUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["@rileyc · Sent today"].exists)
         capture(app, name: "friends-list")
 
-        app.buttons["Accept Taylor Kim’s request"].tap()
-        XCTAssertTrue(app.staticTexts["You and Taylor are now friends."].waitForExistence(timeout: 5))
+        app.buttons["Accept Taylor’s request"].tap()
+        XCTAssertTrue(app.staticTexts["@taylork · Added today"].waitForExistence(timeout: 5))
+        XCTAssertFalse(element(app, "friends.notice").exists)
         XCTAssertFalse(app.staticTexts["Requests for you"].exists)
 
         app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "Sam Rivera")).firstMatch.tap()
@@ -735,9 +731,10 @@ final class LiveDesignUITests: XCTestCase {
         XCTAssertGreaterThan(largeHeading.frame.height, defaultHeight * 1.4,
                              "The app must actually enlarge text, not only rearrange fixed-size labels")
         capture(app, name: "friends-largest-text")
-        let accept = app.buttons["Accept Taylor Kim’s request"]
+        let accept = app.buttons["Accept Taylor’s request"]
         bring(app, accept); accept.tap()
-        XCTAssertTrue(app.staticTexts["You and Taylor are now friends."].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["@taylork · Added today"].waitForExistence(timeout: 5))
+        XCTAssertFalse(element(app, "friends.notice").exists)
         let add = app.buttons["friends.add"]
         bring(app, add, upward: false); add.tap()
         let field = app.textFields["friends.username"]
@@ -1028,7 +1025,7 @@ final class LiveDesignUITests: XCTestCase {
         field.typeText("\n")
     }
 
-    private func launch(_ route: String, textSize: String? = nil, extra: [String] = []) -> XCUIApplication {
+    func launch(_ route: String, textSize: String? = nil, extra: [String] = []) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["--fixture-live-design", "--live-screen=" + route,
                                "-AppleLanguages", "(en)", "-AppleLocale", "en_US"] + extra
@@ -1038,22 +1035,22 @@ final class LiveDesignUITests: XCTestCase {
         return app
     }
 
-    private func element(_ app: XCUIApplication, _ identifier: String) -> XCUIElement {
+    func element(_ app: XCUIApplication, _ identifier: String) -> XCUIElement {
         app.descendants(matching: .any).matching(identifier: identifier).firstMatch
     }
 
-    private func settingsLink(_ app: XCUIApplication, _ title: String) -> XCUIElement {
-        app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", title)).firstMatch
+    func settingsLink(_ app: XCUIApplication, _ title: String) -> XCUIElement {
+        app.descendants(matching: .any).matching(NSPredicate(format: "label BEGINSWITH %@", title)).firstMatch
     }
 
-    private func bring(_ app: XCUIApplication, _ target: XCUIElement, upward: Bool = true) {
+    func bring(_ app: XCUIApplication, _ target: XCUIElement, upward: Bool = true) {
         for _ in 0..<10 where !target.isHittable {
             if upward { app.swipeUp() } else { app.swipeDown() }
         }
         XCTAssertTrue(target.isHittable, "Expected an actionable control: \(target)")
     }
 
-    private func capture(_ app: XCUIApplication, name: String) {
+    func capture(_ app: XCUIApplication, name: String) {
         let attachment = XCTAttachment(screenshot: app.screenshot())
         attachment.name = name
         attachment.lifetime = .keepAlways

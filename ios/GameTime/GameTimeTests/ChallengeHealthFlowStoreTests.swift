@@ -88,9 +88,10 @@ import XCTest
                     .environment(\.dynamicTypeSize, .accessibility3), name: "d141-leaderboard-\(metric.rawValue)-\(scheme)")
                 // At the largest text size, a viewport boundary can bisect
                 // GameTime. Vision retains that partial word before the next
-                // page's complete line. Check both exact clauses in order.
+                // page's complete line, and can split Barlow's brand into
+                // "Game Time". Preserve both complete clauses and their order.
                 let savedBy = try XCTUnwrap(text.range(of: "saved by"), text)
-                let deadline = try XCTUnwrap(text.range(of: "gametime by the deadline wins"), text)
+                let deadline = try XCTUnwrap(text.range(of: "game\\s*time by the deadline wins", options: .regularExpression), text)
                 XCTAssertLessThanOrEqual(savedBy.upperBound, deadline.lowerBound,
                                          "The saved-result source must precede its deadline: \(text)")
                 XCTAssertTrue(text.contains("continue")); XCTAssertFalse(text.contains("suggestion"))

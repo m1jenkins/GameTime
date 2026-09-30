@@ -13,6 +13,7 @@ struct LiveRecordView: View {
     @State private var loadingMore = false
     @State private var pageRequest = UUID()
     @State private var openFriends = false
+    @State private var scrolled = false
 
     private var snapshot: ChallengeProfileSnapshot {
         guard accountActor != nil, accountActor == store.actor else {
@@ -26,75 +27,68 @@ struct LiveRecordView: View {
     }
 
     var body: some View {
-        ScrollView {
+        FloodlightScrollPage(scrolled: $scrolled) { topInset in
             VStack(alignment: .leading, spacing: 0) {
-                HStack {
-                    Text("You")
-                        .liveFont(27, weight: .bold).tracking(-1)
-                    Spacer()
-                    LiveRoundButton(symbol: "gearshape", label: "Settings", action: settings)
-                        .accessibilityIdentifier("profile.settings")
+                VStack(alignment: .leading, spacing: 0) {
+                    HStack(spacing: 10) {
+                        FloodlightTitle("You", size: 38).foregroundStyle(Floodlight.ink)
+                        Spacer(minLength: 8)
+                        FloodlightNavButton(symbol: "gearshape", label: "Settings", action: settings)
+                            .accessibilityIdentifier("profile.settings")
+                    }
+                    .padding(.horizontal, 18).padding(.top, topInset + 6)
+                    identityHeader.padding(.horizontal, 20).padding(.top, 12)
+                    summary.padding(.horizontal, 16).padding(.top, 14)
                 }
-                .padding(.bottom, 13)
+                .padding(.bottom, 14)
+                .background(alignment: .top) { FloodlightSky() }
 
-                identityHeader
-                if friends != nil {
-                    FriendsEntryRow(challenges: store, username: identity?.handle).padding(.top, 20)
-                }
-                summary.padding(.top, friends != nil ? 24 : 16)
+                VStack(alignment: .leading, spacing: 0) {
+                    if friends != nil {
+                        FriendsEntryRow(challenges: store, username: identity?.handle)
+                    }
+                    let finishedLayout = dynamicTypeSize.isAccessibilitySize
+                        ? AnyLayout(VStackLayout(alignment: .leading, spacing: 6))
+                        : AnyLayout(HStackLayout(alignment: .firstTextBaseline))
+                    finishedLayout {
+                        FloodlightTitle("Finished", size: 21)
+                        if !dynamicTypeSize.isAccessibilitySize { Spacer(minLength: 8) }
+                        Text("\(snapshot.countText(snapshot.finished.count)) challenges")
+                            .floodlightFont(12.5, weight: .medium).foregroundStyle(Floodlight.muted)
+                    }
+                    .padding(.horizontal, 4).padding(.top, 22).padding(.bottom, 12)
 
-                let finishedLayout = dynamicTypeSize.isAccessibilitySize
-                    ? AnyLayout(VStackLayout(alignment: .leading, spacing: 6))
-                    : AnyLayout(HStackLayout())
-                finishedLayout {
-                    Text("Finished").liveFont(16, weight: .bold).tracking(-0.5)
-                    if !dynamicTypeSize.isAccessibilitySize { Spacer(minLength: 8) }
-                    Text("\(snapshot.countText(snapshot.finished.count)) challenges")
-                        .liveFont(12).foregroundStyle(SignalTheme.textSecondary)
-                }
-                .padding(.top, 18).padding(.bottom, 12)
-
-                LazyVStack(spacing: 11) {
-                    ForEach(snapshot.finished) { row in
-                        NavigationLink {
-                            LiveGoalDetail(store: store, id: row.id)
-                        } label: {
-                            resultCard(row)
+                    LazyVStack(spacing: 12) {
+                        ForEach(snapshot.finished) { row in
+                            NavigationLink {
+                                LiveGoalDetail(store: store, id: row.id)
+                            } label: {
+                                resultCard(row)
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityIdentifier("profile.record.\(row.id.uuidString.lowercased())")
                         }
-                        .buttonStyle(.plain)
-                        .accessibilityIdentifier("profile.record.\(row.id.uuidString.lowercased())")
+                    }
+                    if snapshot.finished.isEmpty { emptyRecord }
+                    if snapshot.availability != .complete {
+                        Text(snapshot.scopeText)
+                            .floodlightFont(13).foregroundStyle(Floodlight.muted).padding(.top, 16)
+                            .accessibilityIdentifier("profile.record-scope")
+                    }
+                    if snapshot.availability == .stale || snapshot.availability == .unavailable {
+                        Button(store.refreshing ? "Refreshing…" : "Refresh records") { Task { await store.refresh() } }
+                            .buttonStyle(FloodlightCalmButtonStyle()).disabled(store.refreshing).padding(.top, 12)
+                    }
+                    if !snapshot.sectionsWithMore.isEmpty, snapshot.availability != .stale {
+                        Button(loadingMore ? "Loading…" : "Load more records", action: loadMore)
+                            .buttonStyle(FloodlightCalmButtonStyle()).disabled(loadingMore || store.refreshing)
+                            .padding(.top, 16).accessibilityIdentifier("profile.load-more")
                     }
                 }
-
-                if snapshot.finished.isEmpty {
-                    emptyRecord
-                }
-                if snapshot.availability != .complete {
-                    Text(snapshot.scopeText)
-                        .font(.footnote).foregroundStyle(SignalTheme.textSecondary)
-                        .padding(.top, 16)
-                        .accessibilityIdentifier("profile.record-scope")
-                }
-                if snapshot.availability == .stale || snapshot.availability == .unavailable {
-                    Button(store.refreshing ? "Refreshing…" : "Refresh records") {
-                        Task { await store.refresh() }
-                    }
-                    .buttonStyle(LiveSecondaryButtonStyle())
-                    .disabled(store.refreshing)
-                    .padding(.top, 12)
-                }
-                if !snapshot.sectionsWithMore.isEmpty, snapshot.availability != .stale {
-                    Button(loadingMore ? "Loading…" : "Load more records", action: loadMore)
-                        .buttonStyle(LiveSecondaryButtonStyle())
-                        .disabled(loadingMore || store.refreshing)
-                        .padding(.top, 16)
-                        .accessibilityIdentifier("profile.load-more")
-                }
+                .padding(.horizontal, 16).padding(.bottom, 28)
             }
-            .padding(.horizontal, SignalTheme.contentInset).padding(.top, 10).padding(.bottom, 24)
         }
-        .background(SignalTheme.canvas.ignoresSafeArea())
-        .foregroundStyle(SignalTheme.textPrimary)
+        .foregroundStyle(Floodlight.ink)
         .toolbar(.hidden, for: .navigationBar)
         .refreshable { await store.refresh() }
         .navigationDestination(isPresented: $openFriends) { FriendsView(challenges: store, username: identity?.handle) }
@@ -111,21 +105,21 @@ struct LiveRecordView: View {
 
     private var identityHeader: some View {
         HStack(spacing: 12) {
-            LiveAvatar(username: identity?.handle ?? "", actorID: identity?.id, size: 48)
-            VStack(alignment: .leading, spacing: 4) {
-                Text(identity?.displayName ?? "Your profile")
-                    .liveFont(18, weight: .semibold).tracking(-0.5)
+            FloodlightOrb(slot: 0, initials: FloodlightOrb.initials(identity?.displayName ?? identity?.handle ?? ""), size: 52)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(identity?.displayName ?? "Your profile").floodlightFont(17, weight: .semibold)
                 if let identity {
-                    Text("@\(identity.handle)").liveFont(12)
-                        .foregroundStyle(SignalTheme.textSecondary)
-                        .accessibilityLabel("Username \(identity.handle)")
+                    let layout = dynamicTypeSize.isAccessibilitySize
+                        ? AnyLayout(VStackLayout(alignment: .leading, spacing: 4)) : AnyLayout(HStackLayout(spacing: 8))
+                    layout {
+                        Text("@\(identity.handle)").accessibilityLabel("Username \(identity.handle)")
+                        if !dynamicTypeSize.isAccessibilitySize { Text("·").accessibilityHidden(true) }
+                        Label("Private", systemImage: "lock")
+                    }
+                    .floodlightFont(13, weight: .medium).foregroundStyle(Floodlight.muted)
                 }
             }
-            Spacer(minLength: 4)
-            if !dynamicTypeSize.isAccessibilitySize {
-                Label("Private", systemImage: "lock")
-                    .liveFont(10).foregroundStyle(SignalTheme.textSecondary)
-            }
+            Spacer(minLength: 0)
         }
         .accessibilityElement(children: .combine)
     }
@@ -139,44 +133,39 @@ struct LiveRecordView: View {
     private var summary: some View {
         VStack(alignment: .leading, spacing: 10) {
             let headingLayout = dynamicTypeSize.isAccessibilitySize
-                ? AnyLayout(VStackLayout(alignment: .leading, spacing: 6))
-                : AnyLayout(HStackLayout())
+                ? AnyLayout(VStackLayout(alignment: .leading, spacing: 6)) : AnyLayout(HStackLayout(alignment: .firstTextBaseline))
             headingLayout {
-                Text("Your record")
-                if !dynamicTypeSize.isAccessibilitySize { Spacer() }
-                Text(recordPeriod)
+                FloodlightLabel("Your record")
+                if !dynamicTypeSize.isAccessibilitySize { Spacer(minLength: 8) }
+                Text(recordPeriod).floodlightFont(13, weight: .semibold)
             }
-            .liveFont(12, weight: .medium)
-            .foregroundStyle(SignalTheme.textSecondary)
-
-            if dynamicTypeSize.isAccessibilitySize {
-                VStack(alignment: .leading, spacing: 12) { summaryNumbers }
-            } else {
-                HStack(alignment: .top, spacing: 20) { summaryNumbers }
+            let numbersLayout = dynamicTypeSize.isAccessibilitySize
+                ? AnyLayout(VStackLayout(alignment: .leading, spacing: 12)) : AnyLayout(HStackLayout(alignment: .top, spacing: 10))
+            numbersLayout {
+                summaryNumber(snapshot.countText(LiveChallengePresentation.goalsMet(in: snapshot)), label: "Goals met", id: "met")
+                summaryNumber(snapshot.countText(snapshot.finished.count), label: "Challenges finished", id: "finished")
             }
-        }
-        .padding(.top, 12).padding(.bottom, 15)
-        .overlay(alignment: .top) { Rectangle().fill(SignalTheme.divider).frame(height: 1) }
-        .overlay(alignment: .bottom) { Rectangle().fill(SignalTheme.divider).frame(height: 1) }
-    }
-
-    @ViewBuilder private var summaryNumbers: some View {
-        summaryNumber(snapshot.countText(LiveChallengePresentation.goalsMet(in: snapshot)), label: "Goals met", id: "met")
-        if !dynamicTypeSize.isAccessibilitySize {
-            Rectangle().fill(SignalTheme.divider).frame(width: 1, height: 58)
+            if !snapshot.finished.isEmpty {
+                LazyVGrid(columns: [GridItem(.adaptive(minimum: 20, maximum: 20), spacing: 4)], alignment: .leading, spacing: 4) {
+                    ForEach(snapshot.finished.reversed()) { row in
+                        recordPip(row)
+                    }
+                }
+                .padding(.top, 12)
+                .overlay(alignment: .top) { Rectangle().fill(Floodlight.line).frame(height: 1) }
+                .padding(.top, 2)
                 .accessibilityHidden(true)
+            }
         }
-        summaryNumber(snapshot.countText(snapshot.finished.count), label: "Challenges\nfinished", id: "finished")
+        .padding(.horizontal, 16).padding(.vertical, 14)
+        .floodlightHero()
     }
 
     private func summaryNumber(_ value: String, label: String, id: String) -> some View {
-        let layout = dynamicTypeSize.isAccessibilitySize
-            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 4))
-            : AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: 12))
-        return layout {
-            Text(value).liveFont(46, weight: .black, italic: true).tracking(-2.5)
-                .minimumScaleFactor(0.65).lineLimit(1)
-            Text(label).liveFont(12).foregroundStyle(SignalTheme.textSecondary)
+        VStack(alignment: .leading, spacing: 4) {
+            Text(value).floodlightFont(64, weight: .semibold, condensed: true, maxScale: 1.5).tracking(-1.28)
+                .foregroundStyle(Floodlight.muted).lineLimit(1).minimumScaleFactor(0.65)
+            Text(label).floodlightFont(13, weight: .medium).foregroundStyle(Floodlight.muted)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -184,70 +173,136 @@ struct LiveRecordView: View {
         .accessibilityIdentifier("profile.count.\(id)")
     }
 
-    private func resultCard(_ row: ChallengeV1) -> some View {
-        let outcome = LiveChallengePresentation.outcome(row, actor: snapshot.actor)
-        let member = row.own(snapshot.actor)
-        let savedValue = member.flatMap { row.savedScore($0) }
-        let noResult = row.status != "final" || member?.exited == true
-        return VStack(alignment: .leading, spacing: 0) {
-            HStack(alignment: .firstTextBaseline) {
-                Text(LiveChallengePresentation.title(row))
-                    .liveFont(19, weight: .bold).tracking(-0.65)
-                Spacer(minLength: 8)
-                Image(systemName: "chevron.right").font(.system(size: 12, weight: .medium))
-                    .foregroundStyle(SignalTheme.textSecondary).accessibilityHidden(true)
-            }
-            Text(dateRange(row)).liveFont(12)
-                .foregroundStyle(SignalTheme.textSecondary).padding(.top, 6)
-            if noResult {
-                Text(outcome).liveFont(13, weight: .medium)
-                    .foregroundStyle(SignalTheme.textSecondary).padding(.top, 12)
+    private enum RecordState { case met, missed, unconfirmed, other }
+    private func recordState(_ row: ChallengeV1) -> RecordState {
+        guard let own = row.own(snapshot.actor), own.selected, own.consented, !own.exited else { return .other }
+        let result = row.final?.result
+        let status = result?.participants?[own.actorId.uuidString.lowercased()]?.status ?? (row.socialHidden ? result?.own?.status : nil)
+        if row.status == "final", status == "met" { return .met }
+        if row.status == "final", status == "missed" { return .missed }
+        if row.isClosed, row.status != "cancelled", !["winner", "placed"].contains(status ?? ""),
+           row.savedScore(own) == nil || status == nil || status == "missing" || status == "unverified" {
+            return .unconfirmed
+        }
+        return .other
+    }
+
+    private func recordPip(_ row: ChallengeV1) -> some View {
+        let state = recordState(row)
+        return ZStack {
+            Circle().fill(state == .met ? Floodlight.button : state == .unconfirmed ? Floodlight.unconfirmedWash : Floodlight.well)
+            if state == .met {
+                Image(systemName: "checkmark").font(.system(size: 11, weight: .bold)).foregroundStyle(Floodlight.buttonInk)
+            } else if state == .unconfirmed {
+                Circle().strokeBorder(Floodlight.unconfirmed, style: StrokeStyle(lineWidth: 1, dash: [3, 2]))
+                Text("?").floodlightFont(12, weight: .bold, maxScale: 1).foregroundStyle(Floodlight.unconfirmed)
             } else {
-                let resultLayout = dynamicTypeSize.isAccessibilitySize
-                    ? AnyLayout(VStackLayout(alignment: .leading, spacing: 8))
-                    : AnyLayout(HStackLayout(spacing: 8))
-                resultLayout {
-                    LiveStateChip(text: outcome, warning: outcome == "Missed", neutral: outcome == "Didn’t count")
-                    if !dynamicTypeSize.isAccessibilitySize { Spacer(minLength: 0) }
-                    HStack(spacing: -8) {
-                        ForEach(Array(row.members.filter { $0.selected && $0.consented }.prefix(3))) { person in
-                            LiveAvatar(username: person.username, actorID: person.actorId, size: 28)
-                                .overlay(Circle().stroke(SignalTheme.canvas, lineWidth: 2))
-                        }
-                    }
-                    .accessibilityLabel("\(row.members.filter { $0.selected && $0.consented }.count) participants")
-                }
-                .padding(.top, 10)
-                if let savedValue {
-                    LiveMetric(value: LiveChallengePresentation.value(savedValue, metric: row.format.metric),
-                               unit: LiveChallengePresentation.unit(row.format.metric), size: 64)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .frame(height: dynamicTypeSize.isAccessibilitySize ? nil : 66)
-                        .padding(.top, 7)
-                } else {
-                    Text("Result unavailable")
-                        .liveFont(24, weight: .bold).tracking(-0.8).padding(.top, 16)
-                }
-                Text(targetText(row)).liveFont(11)
-                    .foregroundStyle(SignalTheme.textSecondary).padding(.top, 5)
+                Circle().strokeBorder(state == .missed ? Floodlight.faint : Floodlight.wellEdge, lineWidth: 1)
             }
         }
-        .padding(.horizontal, 18).padding(.vertical, 16)
+        .frame(width: 20, height: 20)
+    }
+
+    private func resultCard(_ row: ChallengeV1) -> some View {
+        let state = recordState(row)
+        let savedValue = row.own(snapshot.actor).flatMap { row.savedScore($0) }
+        let hasFinalResult = row.status == "final" && row.own(snapshot.actor)?.exited != true
+        let layout = dynamicTypeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 12)) : AnyLayout(HStackLayout(alignment: .center, spacing: 12))
+        return layout {
+            resultRing(state)
+            VStack(alignment: .leading, spacing: 6) {
+                HStack(alignment: .top, spacing: 8) {
+                    VStack(alignment: .leading, spacing: 3) {
+                        FloodlightTitle(LiveChallengePresentation.title(row), size: 18)
+                        Text(dateRange(row)).floodlightFont(12, weight: .medium).foregroundStyle(Floodlight.muted)
+                    }
+                    Spacer(minLength: 8)
+                    Image(systemName: "chevron.right").font(.system(size: 15, weight: .semibold)).padding(.top, 3)
+                        .foregroundStyle(Floodlight.muted).accessibilityHidden(true)
+                }
+                if state == .unconfirmed {
+                    Text("Result unavailable")
+                        .floodlightFont(22, weight: .semibold, condensed: true)
+                        .fixedSize(horizontal: false, vertical: true)
+                } else if !hasFinalResult {
+                    Text(LiveChallengePresentation.outcome(row, actor: snapshot.actor))
+                        .floodlightFont(13, weight: .medium).foregroundStyle(Floodlight.muted)
+                } else if let savedValue {
+                    HStack(alignment: .firstTextBaseline, spacing: 5) {
+                        Text(LiveChallengePresentation.value(savedValue, metric: row.format.metric))
+                            .floodlightFont(28, weight: .semibold, condensed: true, maxScale: 1.5)
+                            .tracking(-0.56).lineLimit(1).minimumScaleFactor(0.7)
+                        Text(LiveChallengePresentation.unit(row.format.metric))
+                            .floodlightFont(12, weight: .medium).foregroundStyle(Floodlight.muted)
+                    }
+                } else {
+                    Text("Result unavailable").floodlightFont(22, weight: .semibold, condensed: true)
+                }
+                if hasFinalResult || state == .unconfirmed {
+                    let footerLayout = dynamicTypeSize.isAccessibilitySize
+                        ? AnyLayout(VStackLayout(alignment: .leading, spacing: 6)) : AnyLayout(HStackLayout(alignment: .center, spacing: 8))
+                    footerLayout {
+                        Text(state == .unconfirmed ? "It doesn’t count against you." : targetText(row))
+                            .floodlightFont(12, weight: .medium).foregroundStyle(Floodlight.muted)
+                            .fixedSize(horizontal: false, vertical: true)
+                        if !dynamicTypeSize.isAccessibilitySize { Spacer(minLength: 0) }
+                        resultTag(state, otherText: LiveChallengePresentation.outcome(row, actor: snapshot.actor))
+                    }
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .padding(.horizontal, 14).padding(.vertical, 12)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .modifier(LiveCardModifier())
+        .floodlightCard(fill: state == .unconfirmed ? Floodlight.unconfirmedWash : Floodlight.card,
+                       dashedEdge: state == .unconfirmed ? Floodlight.unconfirmed : nil)
+    }
+
+    private func resultRing(_ state: RecordState) -> some View {
+        ZStack {
+            if state == .unconfirmed {
+                Circle().stroke(Floodlight.unconfirmed, style: StrokeStyle(lineWidth: 3, dash: [4, 4])).padding(6)
+                Text("?").floodlightFont(20, weight: .bold, condensed: true, maxScale: 1).foregroundStyle(Floodlight.unconfirmed)
+            } else {
+                Circle().stroke(Floodlight.well, lineWidth: 7).padding(6)
+                Circle().trim(from: 0, to: state == .met ? 1 : 0).stroke(FloodlightToken.arcYou.color, style: StrokeStyle(lineWidth: 7, lineCap: .round))
+                    .rotationEffect(.degrees(-90)).padding(6)
+                if state == .met {
+                    Image(systemName: "checkmark").font(.system(size: 22, weight: .bold)).foregroundStyle(Floodlight.ink)
+                }
+            }
+        }
+        .frame(width: 58, height: 58).accessibilityHidden(true)
+    }
+
+    private func resultTag(_ state: RecordState, otherText: String) -> some View {
+        HStack(spacing: 5) {
+            if state == .met { Image(systemName: "checkmark").font(.system(size: 11, weight: .semibold)).accessibilityHidden(true) }
+            Text(state == .met ? "Your goal met" : state == .missed ? "Missed" : state == .unconfirmed ? "Not confirmed" : otherText)
+                .floodlightFont(11.5, weight: .semibold)
+        }
+        .foregroundStyle(state == .met ? Floodlight.buttonInk : Floodlight.ink)
+        .padding(.horizontal, 10).padding(.vertical, 5)
+        .background(Capsule().fill(state == .met ? Floodlight.button : state == .unconfirmed ? .clear : Floodlight.well))
+        .overlay {
+            if state == .unconfirmed {
+                Capsule().strokeBorder(Floodlight.unconfirmed, style: StrokeStyle(lineWidth: 1, dash: [4, 3]))
+            }
+        }
     }
 
     private var emptyRecord: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(snapshot.availability == .complete ? "No finished challenges yet" : "Your record is loading")
-                .liveFont(20, weight: .bold).tracking(-0.5)
+                .floodlightFont(20, weight: .bold, condensed: true)
             Text(snapshot.availability == .complete
                  ? "Your finished challenges will appear here. Find your current goals in Challenges."
                  : "Refresh to see your saved results.")
-                .font(.subheadline).foregroundStyle(SignalTheme.textSecondary)
+                .floodlightFont(14).foregroundStyle(Floodlight.muted)
         }
         .padding(20).frame(maxWidth: .infinity, alignment: .leading)
-        .modifier(LiveCardModifier())
+        .floodlightCard()
     }
 
     private func dateRange(_ row: ChallengeV1) -> String {

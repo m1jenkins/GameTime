@@ -2,28 +2,32 @@ import SwiftUI
 import UIKit
 
 /// D142 friends under You. Every request is deliberate and by exact username:
-/// no suggestions, contacts or counts. Decline, remove, block and report never
-/// notify the other person. Copy follows the approved Phase 1 mocks.
+/// no suggestions or contacts. Decline, remove, block and report never notify
+/// the other person. Round 13 adds the quiet count and accepted-today caption.
 
 /// One row under your profile on You. It shows no count or badge.
 struct FriendsEntryRow: View {
     let challenges: ChallengeV1Store
     let username: String?
+    @Environment(FriendsStore.self) private var friends: FriendsStore?
     var body: some View {
         NavigationLink { FriendsView(challenges: challenges, username: username) } label: {
-            HStack(spacing: 13) {
-                LiveIconTile(symbol: "person.2")
-                Text("Friends").liveFont(16, weight: .medium)
+            HStack(spacing: 12) {
+                FloodlightFriendsIcon(symbol: "person.2")
+                Text("Friends").floodlightFont(15, weight: .semibold)
                     .fixedSize(horizontal: false, vertical: true)
                 Spacer(minLength: 4)
-                Image(systemName: "chevron.right").font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(SignalTheme.textSecondary).accessibilityHidden(true)
+                FloodlightFaceStack(people: Array((friends?.friends ?? []).prefix(4).enumerated()).map { index, person in
+                    (slot: [1, 2, 3, 5][index], initials: FloodlightOrb.initials(person.displayName), badge: .none, waiting: false)
+                }, size: 24)
+                Image(systemName: "chevron.right").font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(Floodlight.muted).accessibilityHidden(true)
             }
-            .padding(.horizontal, 14).frame(minHeight: 60).contentShape(Rectangle())
+            .padding(.horizontal, 14).padding(.vertical, 7).frame(minHeight: 54).contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .foregroundStyle(SignalTheme.textPrimary)
-        .modifier(LiveCardModifier(radius: 18, material: true))
+        .foregroundStyle(Floodlight.ink)
+        .floodlightCard()
         .accessibilityIdentifier("profile.friends")
     }
 }
@@ -36,32 +40,89 @@ struct FriendsView: View {
     @State private var adding = false
     @State private var sharing = false
     @State private var selected: FriendPerson?
+    @State private var scrolled = false
+    @State private var avatarSlots: [UUID: Int] = [:]
+    @Environment(\.dynamicTypeSize) private var typeSize
 
     var body: some View {
-        ScrollView {
+        FloodlightScrollPage(scrolled: $scrolled) { topInset in
             VStack(alignment: .leading, spacing: 0) {
-                LivePageHeader(title: "Friends", back: { dismiss() }) {
-                    Button { adding = true } label: {
-                        Image(systemName: "person.badge.plus").font(.system(size: 20, weight: .medium)).frame(width: 44, height: 44)
+                VStack(alignment: .leading, spacing: 0) {
+                    header.padding(.horizontal, 18).padding(.top, topInset + 4)
+                    if let friends, !friends.incoming.isEmpty, friends.state == .loaded || friends.state == .offline {
+                        requests(friends).padding(.horizontal, 16).padding(.top, 14)
                     }
-                    .buttonStyle(.plain).foregroundStyle(SignalTheme.textPrimary)
-                    .disabled(friends?.canAct != true)
-                    .accessibilityLabel("Add a friend").accessibilityIdentifier("friends.add")
                 }
-                if let friends { content(friends) }
-                else { FriendsUnavailableCard(message: "Friends aren’t available right now. Try again later.", retry: nil) }
+                .padding(.bottom, 6)
+                .background { FloodlightSky() }
+                Group {
+                    if let friends { content(friends) }
+                    else { FriendsUnavailableCard(message: "Friends aren’t available right now. Try again later.", retry: nil) }
+                }
+                .padding(.horizontal, 16).padding(.top, 14).padding(.bottom, 28)
             }
-            .padding(.horizontal, 20).padding(.top, 10).padding(.bottom, 28)
         }
-        .background(SignalTheme.canvas.ignoresSafeArea())
-        .foregroundStyle(SignalTheme.textPrimary)
+        .foregroundStyle(Floodlight.ink)
         .toolbar(.hidden, for: .navigationBar)
         .refreshable { await friends?.refresh() }
         .task { await friends?.refresh() }
         .modifier(FriendsNoticeToast(friends: friends))
         .sheet(isPresented: $adding) { AddFriendView(challenges: challenges, username: username) }
         .sheet(item: $selected) { person in FriendActionsSheet(person: person) }
-        .onChange(of: friends?.actor) { adding = false; selected = nil }
+        .onChange(of: friends?.actor) { adding = false; selected = nil; avatarSlots = [:] }
+        .onChange(of: friends?.list, initial: true) { assignAvatarSlots() }
+    }
+
+    private var header: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack {
+                FloodlightNavButton(symbol: "chevron.left", label: "Back") { dismiss() }
+                Spacer(minLength: 8)
+                FloodlightNavButton(symbol: "person.badge.plus", label: "Add a friend") { adding = true }
+                    .disabled(friends?.canAct != true).accessibilityIdentifier("friends.add")
+            }.frame(minHeight: 44)
+            FloodlightTitle("Friends", size: 38).accessibilityAddTraits(.isHeader)
+                .padding(.horizontal, 2).fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    private func assignAvatarSlots() {
+        guard let list = friends?.list else { return }
+        let order = [1, 2, 3, 5, 0, 4]
+        for (index, person) in list.friends.enumerated() where avatarSlots[person.id] == nil {
+            avatarSlots[person.id] = order[index % order.count]
+        }
+        for (index, person) in list.incoming.enumerated() where avatarSlots[person.id] == nil {
+            avatarSlots[person.id] = [4, 0, 1, 2, 3, 5][index % 6]
+        }
+    }
+
+    private func slot(_ person: FriendPerson) -> Int { avatarSlots[person.id] ?? 4 }
+
+    private func requests(_ friends: FriendsStore) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            FloodlightLabel("Requests for you").accessibilityAddTraits(.isHeader)
+            ForEach(friends.incoming) { person in
+                FloodlightFriendRow(person: person, slot: slot(person), size: 44, inset: 0) {
+                    let layout = typeSize.isAccessibilitySize
+                        ? AnyLayout(VStackLayout(alignment: .leading, spacing: 8))
+                        : AnyLayout(HStackLayout(spacing: 8))
+                    layout {
+                        Button("Decline") { Task { await friends.perform(.decline, person: person) } }
+                            .buttonStyle(FloodlightFriendRequestButtonStyle())
+                            .accessibilityLabel("Decline \(person.firstName)’s request")
+                        Button("Accept") { Task { await friends.perform(.accept, person: person) } }
+                            .buttonStyle(FloodlightFriendRequestButtonStyle())
+                            .accessibilityLabel("Accept \(person.firstName)’s request")
+                    }.disabled(!friends.canAct)
+                }.padding(.top, 4)
+            }
+            Text("If you decline, the request goes away. We don’t tell them.")
+                .floodlightFont(12.5, weight: .medium).foregroundStyle(Floodlight.muted)
+                .fixedSize(horizontal: false, vertical: true).padding(.top, 8)
+        }
+        .padding(.horizontal, 14).padding(.vertical, 12).floodlightHero()
+        .accessibilityIdentifier("friends.requests")
     }
 
     @ViewBuilder private func content(_ friends: FriendsStore) -> some View {
@@ -85,7 +146,7 @@ struct FriendsView: View {
                                 + ". Connect to accept requests or add friends.")
                     .padding(.top, 8)
             }
-            FriendsActionStatus(friends: friends).padding(.top, 8)
+            FriendsActionStatus(friends: friends)
             if friends.incoming.isEmpty && friends.friends.isEmpty && friends.outgoing.isEmpty {
                 empty(friends)
             } else {
@@ -99,66 +160,60 @@ struct FriendsView: View {
     }
 
     @ViewBuilder private func lists(_ friends: FriendsStore) -> some View {
-        if !friends.incoming.isEmpty {
-            LiveSectionHeader(title: "Requests for you").padding(.top, 8)
-            LiveListCard {
-                ForEach(friends.incoming) { person in
-                    FriendRow(person: person) {
-                        LiveActionGroup {
-                            Button("Decline") { Task { await friends.perform(.decline, person: person) } }
-                                .buttonStyle(LivePillButtonStyle(kind: .quiet))
-                                .accessibilityLabel("Decline \(person.displayName)’s request")
-                            Button("Accept") { Task { await friends.perform(.accept, person: person) } }
-                                .buttonStyle(LivePillButtonStyle(kind: .filled))
-                                .accessibilityLabel("Accept \(person.displayName)’s request")
-                        }.disabled(!friends.canAct)
-                    }
-                }
-            }
-            LiveCaption("If you decline, the request goes away. We don’t tell them.").padding(.top, 8)
-        }
-        LiveSectionHeader(title: "Friends")
-        if friends.friends.isEmpty {
-            Text("No friends yet.").font(.subheadline).foregroundStyle(SignalTheme.textSecondary)
-        } else {
-            LiveListCard {
-                ForEach(friends.friends) { person in
-                    Button { selected = person } label: {
-                        FriendRow(person: person) {
-                            Image(systemName: "chevron.right").font(.system(size: 13, weight: .semibold))
-                                .foregroundStyle(SignalTheme.textSecondary).accessibilityHidden(true)
+        TimelineView(.everyMinute) { _ in
+            VStack(alignment: .leading, spacing: 0) {
+                HStack(alignment: .firstTextBaseline) {
+                    FloodlightTitle("Friends", size: 20, spacing: 0.01).accessibilityAddTraits(.isHeader)
+                    Spacer(minLength: 8)
+                    Text(friends.friends.count.formatted()).floodlightFont(12.5, weight: .medium)
+                        .foregroundStyle(Floodlight.muted)
+                }.padding(.horizontal, 4).padding(.top, 8).padding(.bottom, 12)
+                if friends.friends.isEmpty {
+                    Text("No friends yet.").floodlightFont(15).foregroundStyle(Floodlight.muted)
+                } else {
+                    FloodlightFriendsList {
+                        ForEach(friends.friends) { person in
+                            Button { selected = person } label: {
+                                FloodlightFriendRow(person: person, detail: friends.detail(for: person), slot: slot(person)) {
+                                    Image(systemName: "chevron.right").font(.system(size: 14, weight: .semibold))
+                                        .foregroundStyle(Floodlight.muted).accessibilityHidden(true)
+                                }
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityHint("Remove, block or report")
                         }
                     }
-                    .buttonStyle(.plain)
-                    .accessibilityHint("Remove, block or report")
                 }
-            }
-        }
-        if !friends.outgoing.isEmpty {
-            LiveSectionHeader(title: "Requests you sent")
-            LiveListCard {
-                ForEach(friends.outgoing) { person in
-                    FriendRow(person: person, detail: "@\(person.username) · " + FriendsDates.sent(person.sentAt, now: friends.list?.serverTime)) {
-                        Button("Cancel") { Task { await friends.perform(.cancel, person: person) } }
-                            .buttonStyle(LivePillButtonStyle(kind: .text)).disabled(!friends.canAct)
-                            .accessibilityLabel("Cancel your request to \(person.displayName)")
+                if !friends.outgoing.isEmpty {
+                    FloodlightTitle("Requests you sent", size: 20).accessibilityAddTraits(.isHeader)
+                        .padding(.top, 20).padding(.bottom, 12)
+                    FloodlightFriendsList {
+                        ForEach(friends.outgoing) { person in
+                            FriendRow(person: person, detail: "@\(person.username) · " + FriendsDates.sent(person.sentAt, now: friends.list?.serverTime)) {
+                                Button("Cancel") { Task { await friends.perform(.cancel, person: person) } }
+                                    .buttonStyle(LivePillButtonStyle(kind: .text)).disabled(!friends.canAct)
+                                    .accessibilityLabel("Cancel your request to \(person.displayName)")
+                            }
+                        }
                     }
                 }
+                FloodlightFriendsList {
+                    Button { adding = true } label: {
+                        FloodlightFriendsNavRow(symbol: "person.badge.plus", title: "Add a friend")
+                    }
+                    .buttonStyle(.plain).disabled(!friends.canAct).accessibilityIdentifier("friends.add.row")
+                    NavigationLink { BlockedPeopleView() } label: {
+                        FloodlightFriendsNavRow(symbol: "hand.raised", title: "Blocked people")
+                    }
+                    .buttonStyle(.plain).accessibilityIdentifier("friends.blocked")
+                }
+                .padding(.top, 14)
+                Text("Only you see your friends list.").floodlightFont(12.5, weight: .medium).foregroundStyle(Floodlight.muted)
+                    .frame(maxWidth: .infinity).multilineTextAlignment(.center).padding(.top, 14)
             }
         }
-        LiveListCard {
-            Button { adding = true } label: {
-                LiveNavRow(symbol: "person.badge.plus", title: "Add a friend", accent: true, chevron: false)
-            }
-            .buttonStyle(.plain).disabled(!friends.canAct).accessibilityIdentifier("friends.add.row")
-            NavigationLink { BlockedPeopleView() } label: {
-                LiveNavRow(symbol: "hand.raised", title: "Blocked people")
-            }
-            .buttonStyle(.plain).accessibilityIdentifier("friends.blocked")
-        }
-        .padding(.top, 28)
-        LiveCaption("Only you see your friends list.").padding(.top, 12)
     }
+
 
     @ViewBuilder private func empty(_ friends: FriendsStore) -> some View {
         VStack(spacing: 12) {
@@ -190,6 +245,92 @@ struct FriendsView: View {
                     .buttonStyle(.plain)
             }.padding(.top, 28)
         }
+    }
+}
+
+/// The request and the accepted row use the same person picture. Assigning a
+/// slot once on this page keeps it steady when an acceptance moves the row.
+private struct FloodlightFriendRow<Trailing: View>: View {
+    let person: FriendPerson
+    var detail: String? = nil
+    let slot: Int
+    var size: CGFloat = 40
+    var inset: CGFloat = 14
+    @ViewBuilder let trailing: Trailing
+    @Environment(\.dynamicTypeSize) private var typeSize
+
+    var body: some View {
+        let layout = typeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 10))
+            : AnyLayout(HStackLayout(spacing: 12))
+        layout {
+            HStack(spacing: 12) {
+                FloodlightOrb(slot: slot, initials: FloodlightOrb.initials(person.displayName), size: size)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(person.displayName).floodlightFont(15, weight: .semibold)
+                    Text(detail ?? "@\(person.username)").floodlightFont(12.5, weight: .medium)
+                        .foregroundStyle(Floodlight.muted)
+                }.fixedSize(horizontal: false, vertical: true)
+                Spacer(minLength: 0)
+            }
+            trailing
+        }
+        .padding(.horizontal, inset).padding(.vertical, inset == 0 ? 4 : 8)
+        .frame(minHeight: inset == 0 ? 52 : 62).contentShape(Rectangle())
+    }
+}
+
+private struct FloodlightFriendRequestButtonStyle: ButtonStyle {
+    @Environment(\.isEnabled) private var enabled
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label.floodlightFont(14, weight: .semibold)
+            .fixedSize(horizontal: false, vertical: true).multilineTextAlignment(.center)
+            .padding(.horizontal, 15).frame(minWidth: 76, minHeight: 38)
+            .foregroundStyle(enabled ? Floodlight.ink : Floodlight.muted)
+            .background(Capsule().fill(Floodlight.well))
+            .overlay(Capsule().strokeBorder(Floodlight.wellEdge, lineWidth: 1))
+            .opacity(configuration.isPressed ? 0.8 : 1)
+            .frame(minHeight: 44).contentShape(Capsule())
+    }
+}
+
+private struct FloodlightFriendsList<Content: View>: View {
+    @ViewBuilder let content: Content
+    var body: some View {
+        VStack(spacing: 0) {
+            Group(subviews: content) { rows in
+                ForEach(Array(rows.enumerated()), id: \.offset) { index, row in
+                    if index > 0 { Rectangle().fill(Floodlight.line).frame(height: 1).accessibilityHidden(true) }
+                    row
+                }
+            }
+        }.floodlightCard()
+    }
+}
+
+private struct FloodlightFriendsIcon: View {
+    let symbol: String
+    var body: some View {
+        Image(systemName: symbol).font(.system(size: 18, weight: .medium)).foregroundStyle(Floodlight.link)
+            .frame(width: 34, height: 34)
+            .background(Floodlight.well, in: RoundedRectangle(cornerRadius: 11))
+            .overlay(RoundedRectangle(cornerRadius: 11).strokeBorder(Floodlight.wellEdge, lineWidth: 1))
+            .accessibilityHidden(true)
+    }
+}
+
+private struct FloodlightFriendsNavRow: View {
+    let symbol: String
+    let title: String
+    var body: some View {
+        HStack(spacing: 12) {
+            FloodlightFriendsIcon(symbol: symbol)
+            Text(title).floodlightFont(15, weight: .semibold).fixedSize(horizontal: false, vertical: true)
+            Spacer(minLength: 8)
+            Image(systemName: "chevron.right").font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(Floodlight.muted).accessibilityHidden(true)
+        }
+        .padding(.horizontal, 14).padding(.vertical, 8).frame(minHeight: 52).contentShape(Rectangle())
     }
 }
 
@@ -871,13 +1012,17 @@ struct InviteAddFriendRow: View {
         if let friends {
             VStack(alignment: .leading, spacing: 8) {
                 Button { open.toggle(); if open { focused = true } } label: {
-                    HStack(spacing: 10) {
-                        Image(systemName: "person.badge.plus").font(.system(size: 18)).accessibilityHidden(true)
-                        Text("Add a friend by username").liveFont(15, weight: .semibold)
+                    HStack(spacing: 12) {
+                        FloodlightFriendsIcon(symbol: "person.badge.plus")
+                        Text("Add a friend by username").floodlightFont(15, weight: .semibold)
                             .fixedSize(horizontal: false, vertical: true)
                         Spacer(minLength: 0)
+                        Image(systemName: open ? "chevron.down" : "chevron.right")
+                            .font(.system(size: 14, weight: .semibold)).foregroundStyle(Floodlight.muted)
+                            .accessibilityHidden(true)
                     }
-                    .foregroundStyle(SignalTheme.accent).frame(minHeight: 48).contentShape(Rectangle())
+                    .foregroundStyle(Floodlight.ink).padding(.horizontal, 16).padding(.vertical, 10)
+                    .frame(minHeight: 54).floodlightCard().contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
                 .accessibilityAddTraits(open ? [.isSelected] : [])

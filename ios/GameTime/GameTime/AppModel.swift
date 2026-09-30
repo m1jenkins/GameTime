@@ -127,9 +127,15 @@ final class AppModel {
             .appendingPathComponent("GameTime/ProductChallengeV1Pending")
         challengesV1 = ChallengeV1Store(auth: services.auth, client: services.challengesV1,
             requests: ChallengeV1RequestStore(directory: challengeDirectory))
+        let friendsClock: @MainActor () -> Date
+        #if DEBUG
+        friendsClock = { LiveDesignFixtures.enabled ? LiveDesignFixtures.now.date : Date() }
+        #else
+        friendsClock = { Date() }
+        #endif
         friends = FriendsStore(auth: services.auth, client: services.friends,
             journal: challengeDirectoryOverride.map { FriendJournal(directory: $0.appendingPathComponent("Friends")) }
-                ?? .applicationSupport())
+                ?? .applicationSupport(), clock: friendsClock)
         if let dependencies = services.challengeHealthDependencies {
             challengeHealth = ChallengeHealthFlowStore(auth: services.auth, challenges: challengesV1, dependencies: dependencies)
         } else { challengeHealth = nil }

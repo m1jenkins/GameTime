@@ -69,7 +69,12 @@ enum SignalTheme {
     static func install() {
         // iOS 26+ supplies native Liquid Glass navigation. Earlier systems use
         // solid chrome with the same semantic colors and system typography.
-        if #available(iOS 26, *) { return }
+        if #available(iOS 26, *) {
+            // Keep native Liquid Glass, with the shared Floodlight label colors.
+            UITabBar.appearance().unselectedItemTintColor = UIColor(Floodlight.muted)
+            UITabBar.appearance().tintColor = UIColor(Floodlight.link)
+            return
+        }
         let navigation = UINavigationBarAppearance()
         navigation.configureWithOpaqueBackground()
         navigation.backgroundColor = UIColor(SignalTheme.canvas)

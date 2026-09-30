@@ -1,5 +1,25 @@
 # GameTime UI adoption and migration history
 
+## Floodlight round 13 — September 30, 2026
+
+Built under the owner's implementation request from the round 13 captures and
+`COPY.md`: Challenges (populated and empty), You, Friends (request and accepted),
+the Who → Goal → Challenge → Friends creation flow, and Settings, in light and
+dark with the existing Floodlight tokens. The agreement card precedes the live
+challenge; the record precedes Friends. Review and agree is the library's blue
+action; friend request actions are gray and selected filters stay outlined.
+
+Settings stores System, Light or Dark; System follows the iPhone by default.
+Privacy Policy, Beta Terms and Contact support are direct rows, with quiet Sign
+out and Delete account below. The existing deletion confirmation remains.
+Settings stays a native sheet and Create stays a full-screen cover. Accepted
+requests join Friends at the top with Added today until the local day ends;
+acceptance shows no toast. Agreement, request and Personal behavior remain.
+
+See the [implementation receipt](../../outputs/reports/round-13-2026-09-30/README.md)
+for local test results and the twenty native screenshots. This task stays on
+`feat/round-13-floodlight`; it does not authorize publication or hosted changes.
+
 ## Floodlight QA fixes — September 28, 2026
 
 A design QA pass over the first slice's screenshots (below) asked for seven

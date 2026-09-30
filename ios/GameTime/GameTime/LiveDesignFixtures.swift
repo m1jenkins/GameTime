@@ -27,14 +27,15 @@ enum LiveDesignFixtures {
     /// Use this for the runs goal's Health card, not `--fixture-health-not-saved`,
     /// which connects only Steps while your run shows as saved a minute ago.
     static var healthNotConnected: Bool { enabled && ProcessInfo.processInfo.arguments.contains("--fixture-health-not-connected") }
-    static let now = try! ChallengeInstant("2026-09-22T09:41:00-07:00")
-    static let profile = UserProfile(id: actorID, handle: "alexlee", displayName: "Alex Lee", timezone: "America/Los_Angeles")
+    static var round13: Bool { enabled && ProcessInfo.processInfo.arguments.contains("--fixture-round-13") }
+    static var now: ChallengeInstant { try! ChallengeInstant(round13 ? "2026-10-03T09:41:00-07:00" : "2026-09-22T09:41:00-07:00") }
+    static var profile: UserProfile { UserProfile(id: actorID, handle: round13 ? "alex.l" : "alexlee", displayName: "Alex Lee", timezone: "America/Los_Angeles") }
 
     static func makeClient() -> any ChallengeV1Client { LiveDesignFixtureClient() }
     static func makeProfileClient() -> any ProfileClient { LiveDesignFixtureProfileClient() }
     static func displayTitle(for id: UUID) -> String? {
         [activeID: "September runs", invitationID: "October runs", upcomingID: "Park runs",
-         stepsID: "September steps", runsID: "A week outside", closedID: "Midday steps", notSavedID: "Weekday steps"][id]
+         stepsID: "September steps", runsID: round13 ? "August runs" : "A week outside", closedID: "Midday steps", notSavedID: "Weekday steps"][id]
     }
     static func portraitName(for actor: UUID) -> String? {
         [actorID: "alex", samID: "sam", jordanID: "jordan", priyaID: "priya"][actor]
@@ -68,6 +69,7 @@ final class LiveDesignFixtureClient: ChallengeV1Client {
     private let clock: ChallengeInstant
     private var friendState = LiveDesignFixtures.friendList()
     private var friendReceipts: [UUID: (command: FriendCommand, receipt: FriendReceipt)] = [:]
+    private var ageConfirmed = !ProcessInfo.processInfo.arguments.contains("--fixture-age-unconfirmed")
 
     init(now: ChallengeInstant = LiveDesignFixtures.now) {
         clock = now
@@ -121,7 +123,7 @@ final class LiveDesignFixtureClient: ChallengeV1Client {
         let payload: ChallengeJSON
         switch name {
         case "challenge_access_status_v1":
-            payload = .object(["server_time": .string(clock.rawValue), "age_confirmed": .bool(true),
+            payload = .object(["server_time": .string(clock.rawValue), "age_confirmed": .bool(ageConfirmed),
                                "beta_access": .bool(true), "suspended": .bool(false), "appeal_filed": .bool(false)])
         case "challenge_community_catalog_v1": payload = .array([])
         case "challenge_personal_preview_v1":
@@ -146,6 +148,7 @@ final class LiveDesignFixtureClient: ChallengeV1Client {
         guard let op = p["op"]?.string else { throw ChallengeV1Error.invalidResponse }
         if op == "confirm_age" {
             guard p["confirmed"] == .bool(true) else { throw ChallengeV1Error.invalidResponse }
+            ageConfirmed = true
             return .init(confirmed: true, saved: true)
         }
         if op == "create" || op == "personal_commit" { return try create(p, actor: request.actorId, personal: op == "personal_commit") }
@@ -288,8 +291,11 @@ final class LiveDesignFixtureClient: ChallengeV1Client {
         projection = UUID()
     }
 
-    private static let people = [LiveDesignFixtures.actorID: "alexlee", LiveDesignFixtures.samID: "Sam",
-                                 LiveDesignFixtures.jordanID: "Jordan", LiveDesignFixtures.priyaID: "Priya"]
+    private static var people: [UUID: String] {
+        let f = LiveDesignFixtures.self
+        return [f.actorID: f.profile.handle, f.samID: f.round13 ? "sam.r" : "Sam",
+                f.jordanID: f.round13 ? "jordan.b" : "Jordan", f.priyaID: f.round13 ? "priya.n" : "Priya"]
+    }
     private static func member(_ id: UUID, target: Int?, value: Int?, selected: Bool = true,
                                consented: Bool = true, exited: Bool = false, now: ChallengeInstant) -> ChallengeV1.Member {
         .init(actorId: id, username: people[id] ?? "runner", target: target, selected: selected, exited: exited, consented: consented,
@@ -326,7 +332,7 @@ final class LiveDesignFixtureClient: ChallengeV1Client {
     private static func seedRows(now: ChallengeInstant) -> [ChallengeV1] {
         let f = LiveDesignFixtures.self
         func row(_ id: UUID, start: String, policy raw: String, status: String,
-                 members: [ChallengeV1.Member], creator: UUID? = nil, finalAt: String? = nil) -> ChallengeV1 {
+                 members: [ChallengeV1.Member], creator: UUID? = nil, finalAt: String? = nil, outcome: String = "met") -> ChallengeV1 {
             let policy = ChallengeV1Policy(rawValue: raw)!
             let first = try! ChallengeInstant(start + "T00:00:00-07:00")
             let end = first.date.addingTimeInterval(7 * 86_400)
@@ -334,15 +340,45 @@ final class LiveDesignFixtureClient: ChallengeV1Client {
                 startsAt: first, endsAt: .init(date: end), syncBy: .init(date: end.addingTimeInterval(86_400)),
                 correctionsBy: .init(date: end.addingTimeInterval(172_800)), noticeDue: .init(date: end.addingTimeInterval(259_200)))
             let source = policy.metric == .steps ? "apple_watch_steps_v1" : "apple_workout_outdoor_distance_v1"
-            let allocation = ChallengeV1.Allocation(outcome: "scored", participants: Dictionary(uniqueKeysWithValues: members.map {
-                ($0.actorId.uuidString.lowercased(), .init(status: "met", returnedCents: 2_000))
-            }), own: nil, entryCents: members.count * 2_000, unallocatedCents: 0, simulation: "nonredeemable")
+            let allocation = ChallengeV1.Allocation(outcome: outcome == "void" ? "void" : "scored", participants: Dictionary(uniqueKeysWithValues: members.map {
+                ($0.actorId.uuidString.lowercased(), .init(status: outcome, returnedCents: outcome == "missed" ? 0 : 2_000))
+            }), own: nil, entryCents: members.count * 2_000, unallocatedCents: outcome == "missed" ? members.count * 2_000 : 0, simulation: "nonredeemable")
             // A later exit does not erase the roster from the original agreement.
             let agreedMembers = members.map { replacing($0, exited: false) }
             return .init(sourcePolicyVersion: source, id: id, creatorId: creator ?? f.actorID, policy: raw, config: window,
                 status: status, revision: 1, agreementVersion: 1, serverTime: now, socialHidden: policy.mode == .personal,
                 agreement: try! agreement(policy: policy, window: window, members: agreedMembers, source: source), members: members,
                 notice: nil, reviews: [], final: finalAt.map { .init(recordedAt: try! ChallengeInstant($0), result: allocation) })
+        }
+        if f.round13 {
+            let args = ProcessInfo.processInfo.arguments
+            if args.contains("--live-screen=challenges-empty") { return [] }
+            let live = [
+                row(f.activeID, start: "2026-09-28", policy: "friend_distance_goal_v1", status: "active", members: [
+                    member(f.actorID, target: 20_000_000, value: 8_600_000, now: now),
+                    member(f.samID, target: 20_000_000, value: 11_200_000, now: now),
+                    member(f.jordanID, target: 15_000_000, value: 5_100_000, now: now),
+                    member(f.priyaID, target: 10_000_000, value: 6_000_000, now: now)]),
+                row(f.invitationID, start: "2026-10-05", policy: "friend_distance_goal_v1", status: "consent_pending", members: [
+                    member(f.actorID, target: 20_000_000, value: nil, consented: false, now: now),
+                    member(f.jordanID, target: 20_000_000, value: nil, now: now)], creator: f.jordanID)
+            ]
+            // Library and record captures use different, explicit local accounts' histories.
+            if args.contains("--live-screen=challenges") || args.contains("--live-screen=create") { return live }
+            let history = [
+                row(f.stepsID, start: "2026-09-14", policy: "friend_steps_goal_v1", status: "final", members: [
+                    member(f.actorID, target: 70_000, value: 74_120, now: try! .init("2026-09-21T00:00:00-07:00")),
+                    member(f.samID, target: 60_000, value: 61_200, now: try! .init("2026-09-21T00:00:00-07:00"))], finalAt: "2026-09-26T09:00:00-07:00"),
+                row(f.runsID, start: "2026-08-03", policy: "personal_distance_goal_v1", status: "void", members: [
+                    member(f.actorID, target: 12_000_000, value: nil, now: now)], finalAt: "2026-08-15T09:00:00-07:00", outcome: "void")
+            ]
+            let older = (1...7).map { index in
+                row(UUID(uuidString: String(format: "a2000000-0000-4000-8000-%012d", index))!,
+                    start: String(format: "2026-07-%02d", 25 - index * 3), policy: "personal_steps_goal_v1", status: "final",
+                    members: [member(f.actorID, target: 50_000, value: index == 3 ? 40_000 : 52_000, now: now)],
+                    finalAt: "2026-08-01T09:00:00-07:00", outcome: index == 3 ? "missed" : "met")
+            }
+            return live + history + older
         }
         return [
             row(f.activeID, start: "2026-09-21", policy: "friend_distance_goal_v1", status: "active", members: [
@@ -435,8 +471,8 @@ extension LiveDesignFixtureClient: FriendCommandsClient {
     }
     func friendLookup(_ username: String, actor: UUID) async throws -> FriendLookup {
         guard actor == LiveDesignFixtures.actorID else { throw ChallengeV1Error.accountChanged }
-        if username.lowercased() == "alexlee" {
-            return .init(found: true, id: actor, username: "alexlee", displayName: "Alex Lee", relation: .you)
+        if username.lowercased() == LiveDesignFixtures.profile.handle {
+            return .init(found: true, id: actor, username: LiveDesignFixtures.profile.handle, displayName: "Alex Lee", relation: .you)
         }
         let everyone = friendState.friends + friendState.incoming + friendState.outgoing + LiveDesignFixtures.strangers
         guard !friendState.blocked.contains(where: { $0.username.lowercased() == username.lowercased() }),
@@ -504,6 +540,14 @@ extension LiveDesignFixtures {
 
     static func friendList() -> FriendList {
         func at(_ value: String) -> ChallengeInstant { try! ChallengeInstant(value) }
+        if round13 {
+            return FriendList(serverTime: now, friends: [
+                FriendPerson(id: samID, username: "sam.r", displayName: "Sam Reyes", since: at("2026-09-12T10:00:00-07:00"), youAsked: false),
+                FriendPerson(id: jordanID, username: "jordan.b", displayName: "Jordan Blake", since: at("2026-09-12T11:00:00-07:00"), youAsked: true),
+                FriendPerson(id: priyaID, username: "priya.n", displayName: "Priya Nair", since: at("2026-09-14T09:00:00-07:00"), youAsked: false),
+                FriendPerson(id: morganID, username: "theo.k", displayName: "Theo King", since: at("2026-09-15T09:00:00-07:00"), youAsked: true)
+            ], incoming: [FriendPerson(id: taylorID, username: "maya.d", displayName: "Maya Diaz", sentAt: now)], outgoing: [], blocked: [])
+        }
         return FriendList(serverTime: now, friends: [
             FriendPerson(id: samID, username: "samr", displayName: "Sam Rivera", since: at("2026-09-12T10:00:00-07:00"), youAsked: false),
             FriendPerson(id: jordanID, username: "jordanb", displayName: "Jordan Blake", since: at("2026-09-12T11:00:00-07:00"), youAsked: true),

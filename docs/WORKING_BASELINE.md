@@ -9,6 +9,23 @@ Continue from local `main`. Commit and merge completed authorized work into
 `main`; push remains separately authorized. Dated receipts below identify their
 tested source and publication status, not the current branch tip.
 
+## September 30 Floodlight round 13 (owner-approved implementation)
+
+- **Built:** Challenges and its empty state, You, Friends and accepted requests,
+  the four-step friend creation flow, and Settings, in light and dark using the
+  supplied round 13 captures and copy. Appearance now stores System/Light/Dark;
+  System follows the iPhone by default. Quiet deletion and direct support remain
+  reachable; accepted requests use Added today without a toast.
+- **Preserved:** agreements, explicit consent, Personal history, request replay,
+  and the existing age-confirmation path for an empty account. No hosted changes.
+- **Checked:** complete LiveDesign UI suite, 34 passed with no failures or skips,
+  on GameTime Debug, iPhone 17 Pro, iOS 27.0. The viewport/age regressions passed
+  after fixes; the receipt distinguishes the broader unit run and its OCR repair.
+- **Local branch only:** the owner requires `feat/round-13-floodlight`, cut from
+  `origin/main` at `f1dd690`, in the round13 worktree. Do not merge or push this
+  task, or commit in the dirty Documents checkout. Twenty native PNGs and the
+  [receipt](../outputs/reports/round-13-2026-09-30/README.md) accompany the change.
+
 ## September 29 TestFlight release prep, 0.9.0 (2)
 
 - **Version:** 0.9.0 (2) on every app configuration.

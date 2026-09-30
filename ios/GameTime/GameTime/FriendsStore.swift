@@ -41,7 +41,22 @@ import Observation
         if refreshing || (loadError == nil && actor != nil) { return .loading }
         return .unavailable
     }
-    var friends: [FriendPerson] { list?.friends ?? [] }
+    /// Newly accepted requests lead the list for the rest of the local day.
+    /// Keep the saved order for everyone else, including after midnight.
+    var friends: [FriendPerson] {
+        let people = list?.friends ?? []
+        let now = clock()
+        let today = people.filter { addedToday($0, at: now) }
+            .sorted { ($0.since?.date ?? .distantPast) > ($1.since?.date ?? .distantPast) }
+        return today + people.filter { !addedToday($0, at: now) }
+    }
+    private func addedToday(_ person: FriendPerson, at now: Date) -> Bool {
+        guard person.youAsked == false, let since = person.since else { return false }
+        return Calendar.current.isDate(since.date, inSameDayAs: now)
+    }
+    func detail(for person: FriendPerson) -> String {
+        "@\(person.username)" + (addedToday(person, at: clock()) ? " · Added today" : "")
+    }
     var incoming: [FriendPerson] { list?.incoming ?? [] }
     var outgoing: [FriendPerson] { list?.outgoing ?? [] }
     var blocked: [FriendPerson] { list?.blocked ?? [] }
@@ -207,8 +222,9 @@ import Observation
             if !list.outgoing.contains(where: { $0.id == id }) { list.outgoing.insert(command.person, at: 0) }
         case .accept:
             var person = drop(&list.incoming) ?? command.person
-            person.youAsked = false; person.since = list.serverTime
-            list.friends.append(person)
+            person.youAsked = false; person.since = ChallengeInstant(date: clock())
+            _ = drop(&list.friends)
+            list.friends.insert(person, at: 0)
         case .decline: _ = drop(&list.incoming)
         case .cancel: _ = drop(&list.outgoing)
         case .remove: _ = drop(&list.friends)
