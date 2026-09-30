@@ -12,9 +12,13 @@ operating the system by hand.
 
 **September 30 reconciliation.** The Apple provider, open sign-up, legal pages
 and account-deletion deployment are complete; do not repeat those changes.
-The Health recovery fix is in current source and the deployed function.
-Distribution signing, real-device acceptance and successful hosted activity
-saves remain separate gates. Use the
+The Health recovery fix is in current source and the deployed function. The
+owner-approved September 30 update replaced the existing Staging app in place
+with 0.9.0 (930.26.1); account/goals retention is owner-confirmed. The bounded
+hosted save check passes with both policies in `private_account` mode and
+HTTP 200s, but every saved fact remains `unresolved`. Readable eligible
+activity, remaining real-device/human acceptance and distribution signing
+remain open. Use the
 [current readiness receipt](../outputs/reports/testflight-readiness-2026-09-30/README.md)
 for performed checks and limits. Preserve the owner's Staging installation
 and active goal; no TestFlight installation, upload or invitation is authorized.
@@ -354,10 +358,13 @@ functions score them from the start.
      not prove those flows.
   3. ~~Turn off the private trial~~ done.
   4. ~~Grant the owner weekly global support~~ done; renew weekly.
-  5. Confirm that Steps and outdoor distance still save. This needs the
-     phone on a build from `dff4be9` or later. The September 27–29 receipts
-     still reported refusals; confirm the installed build and fresh saves
-     rather than treating that dated observation as current.
+  5. The count/mode/log save check passed September 30 after the approved
+     same-bundle Staging update to 0.9.0 (930.26.1), which includes
+     `dff4be9`. Both policies now save in `private_account` mode; the clean
+     21:58:02–22:04:53 UTC window has 31 HTTP 200s and no new binding
+     refusals observed. All facts remain `unresolved`; readable eligible
+     activity and physical Health-card acceptance remain open. See the
+     [device receipt](../outputs/reports/testflight-readiness-2026-09-30/DEVICE_HEALTH_ACCEPTANCE.md).
   6. The owner's backup decision. Recorded September 28: the Free plan lists
      no scheduled backups, so the step 6a dump is the only backup.
 

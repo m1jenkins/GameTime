@@ -9,7 +9,37 @@ Continue from local `main`. Commit and merge completed authorized work into
 `main`; push remains separately authorized. Dated receipts below identify their
 tested source and publication status, not the current branch tip.
 
-## September 30 TestFlight readiness reconciliation
+## September 30 approved phone update and Health recovery
+
+- **Device:** after the owner's approval and USB connection, Staging
+  0.8.1 (926.26.1), mapped to `b86a006`, was updated in place to the prepared
+  0.9.0 (930.26.1) and launched normally at 21:57:59 UTC. The new installed
+  version is verified; no production/TestFlight GameTime bundle is installed.
+  The owner confirms account and active goals remain visible. Older cache
+  file timestamps survive; journal/cache bodies were not read. Container
+  paths differ, so metadata alone does not prove unchanged contents.
+- **Hosted recovery:** the clean 21:58:02–22:04:53 UTC window has 31 ingest
+  requests, all HTTP 200, with no new binding/revision/conflict refusal
+  observed. Through that cutoff, Steps has 15 saved facts and distance has
+  16, all `private_account` and `unresolved`. Step 7's count/mode/log check
+  passes in this bounded clean window. The first post-launch window includes
+  one initial HTTP 422; do not omit it or add overlapping counts. Aggregates
+  are project-wide and do not individually attribute each save to the owner.
+- **Still open:** readable eligible activity and the phone's Health-card
+  status; unresolved saves do not prove activity totals or complete physical
+  acceptance. Keep the owner on one uploading Staging installation until
+  actual final goal states permit a separately approved TestFlight cutover.
+  Apple distribution access, review/export answers, human/operational gates
+  and upload/invitation approval remain. Simulated money is unchanged.
+- **Scope:** no app-source change or repeated build/test was needed for this
+  device follow-up. No operator deployment, credential change, agreement,
+  TestFlight upload or invitation. A fingerprint taken after launch has no
+  valid before-update comparison.
+
+See the [device receipt](../outputs/reports/testflight-readiness-2026-09-30/DEVICE_HEALTH_ACCEPTANCE.md)
+and [current readiness](../outputs/reports/testflight-readiness-2026-09-30/README.md).
+
+## September 30 TestFlight readiness reconciliation — before device update
 
 - **Already complete:** Apple-only sign-up is open, both bundles are
   configured, legal pages are published, and account deletion is deployed.

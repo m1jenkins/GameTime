@@ -5,8 +5,11 @@ on September 28 ([receipt](../outputs/reports/2026-09-28-friends-phase-5-hosted.
 Steps 2, 4 and 5 ran that evening; step 3 then ran at 22:27 UTC
 ([applied receipt](../outputs/reports/2026-09-28-phase5-steps2-5.md#step-3-applied)).
 Apple-only sign-up is open and both app bundles are configured. Do not repeat
-completed hosted writes. Step 7 still requires the phone's build identity and
-successful real saves. The
+completed hosted writes. The owner-approved September 30 same-bundle update
+verified the installed recovery build. Step 7's count/mode/log conditions
+pass in a bounded clean post-update window; all saved facts are still
+`unresolved`, so accepted activity and remaining physical validation are open.
+The
 [September 30 readiness receipt](../outputs/reports/testflight-readiness-2026-09-30/README.md)
 distinguishes current read-only verification from the dated instructions below.
 Every step is a hosted read or write on `gametime-p11b`
@@ -762,6 +765,18 @@ distance policy (`*_steps_goal_v1`, `*_distance_goal_v1`). Mode
 200s and no new `binding_invalid` refusals. **Record** only the counts and
 times, not the values. Activity minutes and timed runs get their first hosted
 saves from the first tester challenges (D142).
+
+**September 30 performed check.** The approved in-place update to Staging
+0.9.0 (930.26.1) was installed and launched; the owner confirms account and
+goals remain visible. At 22:04:53 UTC, Step 7 finds 15 Steps facts and 16
+distance facts, all `private_account` and `unresolved`. The clean
+21:58:02–22:04:53 UTC window has 31 HTTP 200s and no new binding/revision/
+conflict refusal observed. This passes the written count/mode/log conditions
+for that window. The earlier post-launch window had one initial HTTP 422;
+overlapping checks must not be added together. These saved uncertainty states
+do not demonstrate accepted activity totals or complete physical acceptance.
+Use the [device receipt](../outputs/reports/testflight-readiness-2026-09-30/DEVICE_HEALTH_ACCEPTANCE.md)
+for exact boundaries, freshness checks and remaining phone follow-up.
 
 **Rollback.** None; this writes nothing.
 

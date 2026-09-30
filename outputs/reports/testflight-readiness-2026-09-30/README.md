@@ -1,9 +1,15 @@
 # GameTime TestFlight readiness — September 30, 2026
 
-The remaining technical gate is successful Health saving from the owner's
-phone. The server recovery fix already exists and is deployed; repeating the
-deployment would not resolve the observed client refusals. The physical iPhone
-was unavailable, so its installed Staging build could not be verified.
+The owner-approved phone update is complete: the existing Staging bundle now
+runs **0.9.0 (930.26.1)**, and the owner confirms the account and active goals
+remain visible. Health uploads resumed. In the clean post-recovery window
+**September 30 21:58:02–22:04:53 UTC**, all **31** requests returned HTTP 200,
+with no further binding refusals observed. Saved Steps and distance facts are
+all `unresolved`, so upload recovery is verified while usable activity totals
+and the phone's Health-card state remain unverified. See the
+[device and hosted acceptance receipt](DEVICE_HEALTH_ACCEPTANCE.md).
+Hosted aggregates are project-wide; their timing supports the recovery
+association but does not individually attribute every request/fact to the owner.
 
 This task reviewed the recent **Identify pre-beta launch tasks** chat and its
 release, acceptance and code-audit results, the current repository contracts,
@@ -20,8 +26,9 @@ and untracked owner work were preserved.
 | Apple sign-up | Live public Auth settings: Apple enabled, sign-up open, email/phone/anonymous off; September 28 applied receipt records both bundles | Real sign-in and new-account acceptance on the signed candidate |
 | Legal and deletion setup | Public privacy/terms HTTP 200, published entity/support address; deletion deployment recorded September 28 | Real deletion with a separate opted-in test identity; inbox receipt/reply and staffing acceptance |
 | Health server fix | Active ingest version 9; all 12 deployed files byte-identical to current source | Do not redeploy this completed fix |
-| Health client fix | `dff4be9` recovery is in current source and the existing archive | Verify the installed Staging identity; update the same bundle if older, after device approval |
-| Real activity saves | Zero saved facts after September 28 22:27:11 UTC; 34 ingest requests through September 30 20:56:13 UTC, all HTTP 422 | Successful private-account Steps and outdoor-distance saves, with no new binding refusals |
+| Health client fix | Old installed Staging 0.8.1 (926.26.1) maps to `b86a006`, before `dff4be9`; approved in-place update and launch of 0.9.0 (930.26.1) succeeded | Installed recovery fix verified; preserve this single uploading bundle |
+| Hosted Health saves | Through September 30 22:04:53 UTC: 16 distance and 15 Steps facts, all `private_account` and `unresolved`; clean window has 31 HTTP 200s and no new refusals | Step 7 count/mode/log conditions pass in that window; establish readable, eligible activity and inspect the phone's Health card |
+| Account and goals | Owner confirms both remain visible; older comparison-cache files remain present by metadata | Keep existing account/goals; changed container path alone is not evidence of cleared data |
 | Review contact/access | Owner supplied the phone and exact friend username; private draft uses the reviewer's own Apple sign-in and a friend request | Contact is filled locally; owner availability to accept the request and arrange access needs confirmation before submission |
 | Export compliance | Archived plist has no declaration; active source uses Apple networking, hashing/storage and device-check APIs | Owner confirms the proposed OS-only/exempt answer before filing it |
 | Apple distribution access | One local development identity, no App Store profile, no cached Xcode Apple account | Owner signs into Xcode/ASC; changes to credentials or agreements need separate approval |
@@ -29,7 +36,8 @@ and untracked owner work were preserved.
 | Human acceptance | Automated checks and fictional fixtures are separate evidence | Physical accessibility/VoiceOver; comprehension and retained-Personal replacement decisions |
 | Operations | Initial support grant, backup dump and secret issuance already recorded | Support renewal by October 4, independent appeals person, backup/pause routine, secret renewal owner by March 13, 2027 |
 
-Detailed performed checks: [release audit](RELEASE_AUDIT.md),
+Detailed performed checks: [device Health acceptance](DEVICE_HEALTH_ACCEPTANCE.md),
+[release audit](RELEASE_AUDIT.md),
 [Health audit](HEALTH_AUDIT.md), [native validation](NATIVE_VALIDATION.md),
 [rendered-rank regression repair](RENDERED_RANK_CHECK.md),
 [export declaration draft evidence](EXPORT_REVIEW.md).
@@ -68,6 +76,20 @@ dated failures. Historical reports keep their original outcomes.
   Debug fixtures. Its chapters show separate examples, rather than evidence
   of one real elapsed challenge. It does not close real Health or physical
   acceptance. Submission still requires owner review and approval.
+- After the owner's approval and USB connection, inspected the installed
+  apps, updated the existing Staging bundle and launched it normally. The
+  exact prepared binary hash matched; installed metadata confirms the new
+  version and absence of the production/TestFlight GameTime bundle. The
+  owner confirms account/goals retention. Comparison-cache files last
+  modified September 21 and 26 remain present; the journal is present and
+  was updated by recovery. No journal or cache bodies were read. Container
+  paths differ, so unchanged-path or unchanged-journal-byte claims are not
+  made. The post-launch goal fingerprint has no valid pre-update comparison.
+- Verified hosted recovery with read-only aggregates. The first post-launch
+  window had one initial HTTP 422 at 21:58:01 UTC, followed by HTTP 200s. A
+  separate clean window through 22:04:53 UTC has only HTTP 200s and no new
+  binding/revision/conflict refusals observed. Fact counts and request counts
+  are separate aggregates; overlapping windows are not added together.
 
 ## Fresh checks and limits
 
@@ -84,7 +106,9 @@ dated failures. Historical reports keep their original outcomes.
 | Six current shell/creation/friends/Health fixture UI tests | Passed |
 | Creation suite after measurement repair | 13 passed |
 | Overlapping-response suite after measurement repair | 21 passed, 0 failed, 0 skipped; both strict mounted-rank methods also passed in their targeted run |
-| Staging device candidate | Signed 0.9.0 (930.26.1) built; signature and product guard passed; no physical installation |
+| Staging device candidate | Signed 0.9.0 (930.26.1) built; signature/product guard passed; owner-approved same-bundle physical installation and normal launch succeeded |
+| Hosted saves after device update | Clean 21:58:02–22:04:53 UTC window: 31 HTTP 200s, no further refusals; both policies saved in `private_account` mode, all states `unresolved` |
+| Phone account/goals retention | Confirmed by owner; pre-update cache timestamps also survive in metadata |
 
 The September 29 full **706 passed, 0 failed, 68 skipped** product run remains
 that run's evidence. This task did not silently replace its skipped gates or
@@ -94,10 +118,13 @@ Known largest-text onboarding/profile polish remains deferred by the existing
 build-1 instructions. D144 payments remain disabled in TestFlight; the completed
 local-emulator payment work is not reopened as a first-build gate.
 
-No hosted mutation, deployment, credential change, agreement acceptance,
-physical app launch/install, TestFlight upload or tester invitation occurred.
-No personal Health totals, request bodies or raw user identifiers were read
-for the hosted check; it selected aggregate counts/timestamps only.
+The device follow-up changed the existing Staging installation and its normal
+launch resumed Health uploads. No operator-initiated hosted mutation,
+deployment, credential change, agreement acceptance, TestFlight upload or
+tester invitation occurred. No personal Health totals, request bodies or raw
+user identifiers were read for the hosted check; it selected aggregate
+counts/timestamps only. This follow-up made no app-source changes and did not
+repeat the previously passed builds/tests.
 
 ## One installation uploading for the owner
 
@@ -109,11 +136,12 @@ replacement. Later replacements can legitimately lower a score or mark its
 data unresolved. Choosing the maximum would break adopted correction rules.
 
 Keep TestFlight uninstalled for this account while the active Staging goals
-continue. When device work is approved, inspect the current bundle/build first.
-If it is old, update **`com.mjenkins.gametime.staging` in place**, without
-uninstalling, signing out, clearing its journal or switching bundles. Preserve
-the existing account and goal; do not recreate either to pass acceptance.
-Then confirm successful saves using the runbook's read-only aggregate.
+continue. The September 30 approval and inspection led to an in-place update
+of **`com.mjenkins.gametime.staging`**, without uninstalling, signing out,
+clearing its journal or switching bundles. Preserve the existing account and
+goals; do not recreate them to pass acceptance. Successful request saving is
+now observed; unresolved activity still needs the phone's status and readable,
+eligible data before claiming full physical Health acceptance.
 
 The existing outdoor-distance corrections close **October 3 at 00:00 Central
 (05:00 UTC)**. If that window expires, acceptance needs a separately approved
@@ -138,7 +166,9 @@ Ignored files stay on this Mac, outside public Git history:
 - `tmp/testflight-readiness-2026-09-30/release-audit/` — local signature,
   archive and public HTTP readbacks.
 
-Next owner action: connect and unlock the iPhone for read-only installed-build
-inspection, then approve the prepared same-bundle update if needed. Apple
-distribution access, export answer, human/operational acceptance and later
-upload/recruitment approval remain separate gates.
+Next owner action: open an active Steps goal, tap Refresh and report the
+Health-card heading/message, without sharing activity values. The aggregate
+state alone cannot distinguish missing read access, excluded sources,
+reconciliation or a local read failure. Apple distribution access, export
+answer, human/operational acceptance and later upload/recruitment approval
+remain separate gates.
