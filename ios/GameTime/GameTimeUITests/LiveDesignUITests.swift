@@ -752,67 +752,98 @@ final class LiveDesignUITests: XCTestCase {
 
     func testLargestTextKeepsOnboardingConsentAndExitReachable() {
         continueAfterFailure = true
-        let app = XCUIApplication()
-        app.launchArguments = ["--fixture-mode", "--fixture-onboarding", "--fixture-empty",
-                               "-AppleLanguages", "(en)", "-AppleLocale", "en_US",
-                               "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"]
-        app.launch()
-        defer { app.terminate() }
-        XCTAssertTrue(app.staticTexts["Before you start"].waitForExistence(timeout: 10))
-        capture(app, name: "onboarding-largest-text")
-        let proceed = app.buttons["onboarding.age.continue"]
-        let watch = labeled(app.staticTexts, "Your activity has to come from an Apple Watch that records to Apple Health on this iPhone. Activity recorded only by iPhone doesn’t count.")
-        XCTAssertTrue(watch.exists)
-        XCTAssertGreaterThan(watch.frame.height, 0)
-        XCTAssertFalse(watch.frame.intersects(proceed.frame),
-                       "The Apple Watch requirement must not sit behind Continue")
-        XCTAssertFalse(proceed.isEnabled)
-        let scroll = app.scrollViews.firstMatch
-        for _ in 0..<8 where watch.frame.maxY > scroll.frame.maxY {
-            scroll.coordinate(withNormalizedOffset: CGVector(dx: 0.8, dy: 0.7))
-                .press(forDuration: 0.01, thenDragTo: scroll.coordinate(withNormalizedOffset: CGVector(dx: 0.8, dy: 0.55)))
-        }
-        XCTAssertGreaterThanOrEqual(watch.frame.minY, scroll.frame.minY)
-        XCTAssertLessThanOrEqual(watch.frame.maxY, scroll.frame.maxY)
-        XCTAssertFalse(watch.frame.intersects(proceed.frame))
-        capture(app, name: "onboarding-watch-largest-text")
-        let exit = app.buttons["onboarding.age.under21"]
-        bring(app, exit); exit.tap()
-        let adults = app.alerts["GameTime is for people 21 and older"]
-        XCTAssertTrue(adults.waitForExistence(timeout: 5))
-        adults.buttons["Go back"].tap()
-        let age = app.switches["onboarding.age.toggle"]
-        bring(app, age)
-        // XCTest may mark a partly visible switch as hittable even while the
-        // pinned footer covers its right-hand toggle. Reveal the whole row.
-        for _ in 0..<8 where age.frame.maxY >= proceed.frame.minY - 12 { app.swipeUp() }
-        XCTAssertLessThan(age.frame.maxY, proceed.frame.minY - 12)
-        capture(app, name: "onboarding-age-control-largest-text")
-        age.tap()
-        XCTAssertTrue(proceed.isEnabled)
-        bring(app, proceed)
-        proceed.tap()
-        let name = app.textFields["onboarding.name.input"]
-        XCTAssertTrue(name.waitForExistence(timeout: 5))
-        capture(app, name: "profile-largest-text")
-        let keyboard = app.keyboards.firstMatch
-        XCTAssertTrue(keyboard.waitForExistence(timeout: 5))
-        name.typeText("Alex Native")
-        name.typeText("\n")
-        let username = app.textFields["onboarding.username.input"]
-        let helper = app.staticTexts["onboarding.username.message"]
-        let visibleAboveKeyboard = NSPredicate { _, _ in
-            [username, helper].allSatisfy { element in
-                element.exists && element.frame.height > 0
-                    && element.frame.minY >= app.frame.minY
-                    && element.frame.maxY <= keyboard.frame.minY
+        let previousAppearance = XCUIDevice.shared.appearance
+        defer { XCUIDevice.shared.appearance = previousAppearance }
+        for appearance in [XCUIDevice.Appearance.light, .dark] {
+            XCUIDevice.shared.appearance = appearance
+            let mode = appearance == .dark ? "dark" : "light"
+            XCTContext.runActivity(named: "Largest onboarding text, " + mode) { _ in
+                let app = XCUIApplication()
+                app.launchArguments = ["--fixture-mode", "--fixture-onboarding", "--fixture-empty",
+                                       "-AppleLanguages", "(en)", "-AppleLocale", "en_US",
+                                       "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"]
+                app.launch()
+                defer { app.terminate() }
+                XCTAssertTrue(app.staticTexts["Before you start"].waitForExistence(timeout: 10))
+                let proceed = app.buttons["onboarding.age.continue"]
+                let exit = app.buttons["onboarding.age.under21"]
+                let pinnedContinue = proceed.frame
+                let pinnedExit = exit.frame
+                for button in [proceed, exit] {
+                    XCTAssertGreaterThan(button.frame.height, 0)
+                    XCTAssertGreaterThanOrEqual(button.frame.minY, app.frame.minY)
+                    XCTAssertLessThanOrEqual(button.frame.maxY, app.frame.maxY,
+                                             "Consent buttons must stay pinned on screen in " + mode)
+                }
+                XCTAssertFalse(proceed.isEnabled)
+                XCTAssertTrue(exit.isHittable, "The pinned under-21 exit must stay reachable in " + mode)
+                let watch = labeled(app.staticTexts, "Your activity has to come from an Apple Watch that records to Apple Health on this iPhone. Activity recorded only by iPhone doesn’t count.")
+                XCTAssertTrue(watch.exists)
+                XCTAssertGreaterThan(watch.frame.height, 0)
+                let initialWatchTop = watch.frame.minY
+                let scroll = app.scrollViews.firstMatch
+                for _ in 0..<12 where watch.frame.maxY > min(scroll.frame.maxY, proceed.frame.minY - 12) {
+                    scroll.coordinate(withNormalizedOffset: CGVector(dx: 0.8, dy: 0.7))
+                        .press(forDuration: 0.01, thenDragTo: scroll.coordinate(withNormalizedOffset: CGVector(dx: 0.8, dy: 0.55)))
+                }
+                XCTAssertLessThan(watch.frame.minY, initialWatchTop, "The body must scroll independently of the buttons")
+                XCTAssertGreaterThanOrEqual(watch.frame.minY, scroll.frame.minY)
+                XCTAssertLessThanOrEqual(watch.frame.maxY, proceed.frame.minY - 12,
+                                         "The full Watch sentence must scroll above the pinned buttons in " + mode)
+                XCTAssertEqual(proceed.frame.minY, pinnedContinue.minY, accuracy: 1, "Continue must not scroll away")
+                XCTAssertEqual(exit.frame.minY, pinnedExit.minY, accuracy: 1, "The under-21 exit must not scroll away")
+                XCTAssertTrue(exit.isHittable)
+                capture(app, name: "before-you-start-" + mode)
+                bring(app, exit); exit.tap()
+                let adults = app.alerts["GameTime is for people 21 and older"]
+                XCTAssertTrue(adults.waitForExistence(timeout: 5))
+                adults.buttons["Go back"].tap()
+                let age = app.switches["onboarding.age.toggle"]
+                bring(app, age)
+                for _ in 0..<8 where age.frame.maxY >= proceed.frame.minY - 12 { app.swipeUp() }
+                XCTAssertLessThan(age.frame.maxY, proceed.frame.minY - 12)
+                XCTAssertEqual(proceed.frame.minY, pinnedContinue.minY, accuracy: 1)
+                XCTAssertEqual(exit.frame.minY, pinnedExit.minY, accuracy: 1)
+                XCTAssertTrue(exit.isHittable)
+                age.tap()
+                XCTAssertTrue(proceed.isEnabled)
+                XCTAssertTrue(proceed.isHittable)
+                proceed.tap()
+                let name = app.textFields["onboarding.name.input"]
+                XCTAssertTrue(name.waitForExistence(timeout: 5))
+                let keyboard = app.keyboards.firstMatch
+                XCTAssertTrue(keyboard.waitForExistence(timeout: 5))
+                name.typeText("Alex Native")
+                name.typeText("\n")
+                let username = app.textFields["onboarding.username.input"]
+                let helper = app.staticTexts["onboarding.username.message"]
+                XCTAssertEqual(helper.label, "Username: 3–30 letters, numbers, or underscores; starts with a letter")
+                // The keyboard accessory is a separate toolbar above the keyboard's autofill row.
+                // Its Done button is not exposed as an accessibility element on this simulator.
+                @MainActor func keyboardBoundary() -> CGFloat? {
+                    guard keyboard.exists else { return nil }
+                    return app.toolbars.allElementsBoundByIndex.map { $0.frame }
+                        .filter { $0.height > 0 && $0.minY > app.frame.minY && $0.maxY <= keyboard.frame.minY }
+                        .map(\.minY).min()
+                }
+                let visibleAboveKeyboard = NSPredicate { _, _ in
+                    guard let bottom = keyboardBoundary() else { return false }
+                    return [username, helper].allSatisfy { element in
+                        element.exists && element.frame.height > 0
+                            && element.frame.minY >= app.frame.minY
+                            && element.frame.maxY <= bottom
+                    }
+                }
+                for focus in ["Next", "typed", "tap"] {
+                    if focus == "typed" { username.typeText("alex_native") }
+                    if focus == "tap" { name.tap(); username.tap() }
+                    XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(
+                        predicate: visibleAboveKeyboard, object: app)], timeout: 5), .completed,
+                                   "Username and its full helper must stay above the keyboard in \(mode), focus \(focus): input \(username.frame), helper \(helper.frame), keyboard \(keyboard.frame), accessory top \(String(describing: keyboardBoundary()))")
+                }
+                capture(app, name: "profile-" + mode)
             }
         }
-        XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(
-            predicate: visibleAboveKeyboard, object: app)], timeout: 5), .completed,
-                       "The focused username field and its helper must be visible above the keyboard: input \(username.frame), helper \(helper.frame), keyboard \(keyboard.frame)")
-        capture(app, name: "profile-username-largest-text")
-        username.typeText("alex_native")
     }
 
     /// Friends Phase 4: the system audit on every friends screen, at the

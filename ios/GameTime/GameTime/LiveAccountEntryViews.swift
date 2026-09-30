@@ -174,18 +174,13 @@ struct LiveOnboardingView: View {
                     .padding(.top, 30).accessibilityIdentifier("onboarding.age.toggle")
                 Text("GameTime is only for people 21 and older.").liveFont(12)
                     .foregroundStyle(SignalTheme.textSecondary).padding(.top, 10).padding(.horizontal, 4)
-                if dynamicTypeSize.isAccessibilitySize {
-                    consentActions.padding(.top, 24)
-                }
             }.padding(.horizontal, SignalTheme.contentInset).padding(.bottom, 24)
         }
         .background(SignalTheme.canvas.ignoresSafeArea()).foregroundStyle(SignalTheme.textPrimary)
         .safeAreaInset(edge: .bottom, spacing: 0) {
-            if !dynamicTypeSize.isAccessibilitySize {
-                consentActions
-                    .padding(.horizontal, SignalTheme.contentInset).padding(.top, 12).padding(.bottom, 6)
-                    .background(SignalTheme.canvas)
-            }
+            consentActions
+                .padding(.horizontal, SignalTheme.contentInset).padding(.top, 12).padding(.bottom, 6)
+                .background(SignalTheme.canvas)
         }
         .alert("GameTime is for people 21 and older", isPresented: $under21) {
             Button("Sign out") { Task { await model.signOut() } }
@@ -290,7 +285,8 @@ struct LiveOnboardingView: View {
 
     private func revealFocusedField(using proxy: ScrollViewProxy) {
         guard dynamicTypeSize.isAccessibilitySize, let focusedField else { return }
-        proxy.scrollTo(focusedField, anchor: .bottom)
+        // Center the whole field and helper, leaving clearance for the keyboard accessory.
+        proxy.scrollTo(focusedField, anchor: .center)
     }
 
     private func profileField(_ title: String, text: Binding<String>, field: Field) -> some View {
