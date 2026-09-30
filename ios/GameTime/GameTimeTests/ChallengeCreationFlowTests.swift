@@ -536,19 +536,22 @@ import GameTimeCore
         return nil
     }
     func primaryFillBottom(below labelBottom: CGFloat) -> CGFloat? {
-        guard let cg = image.cgImage else { return nil }
+        guard let cg = image.cgImage, let colorSpace = CGColorSpace(name: CGColorSpace.sRGB) else { return nil }
         let width = cg.width, height = cg.height
         var pixels = [UInt8](repeating: 0, count: width * height * 4)
         let rendered = pixels.withUnsafeMutableBytes { bytes in
             guard let context = CGContext(data: bytes.baseAddress, width: width, height: height, bitsPerComponent: 8,
-                bytesPerRow: width * 4, space: CGColorSpaceCreateDeviceRGB(),
+                bytesPerRow: width * 4, space: colorSpace,
                 bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else { return false }
             context.draw(cg, in: CGRect(x: 0, y: 0, width: width, height: height))
             return true
         }
         guard rendered else { return nil }
         var red: CGFloat = 0, green: CGFloat = 0, blue: CGFloat = 0, alpha: CGFloat = 0
-        UIColor(SignalCreationTheme.accent).getRed(&red, green: &green, blue: &blue, alpha: &alpha)
+        // This viewport mounts in light appearance. Normalize wide-gamut
+        // captures to the same sRGB space as the button's resolved fill token.
+        UIColor(SignalTheme.accentFill).resolvedColor(with: UITraitCollection(userInterfaceStyle: .light))
+            .getRed(&red, green: &green, blue: &blue, alpha: &alpha)
         let expected = [red, green, blue].map { Int(($0 * 255).rounded()) }
         let x = width / 2
         var bottom: Int?

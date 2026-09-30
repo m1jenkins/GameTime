@@ -2,10 +2,13 @@
 
 Written September 27, 2026, from source and receipts only. Steps 6a and 1 ran
 on September 28 ([receipt](../outputs/reports/2026-09-28-friends-phase-5-hosted.md)).
-Steps 2, 4 and 5 ran that evening
-([receipt](../outputs/reports/2026-09-28-phase5-steps2-5.md)). Step 3 waits
-for a Management API token or a dashboard change, so sign-up is still closed.
-Step 7 waits for a phone build.
+Steps 2, 4 and 5 ran that evening; step 3 then ran at 22:27 UTC
+([applied receipt](../outputs/reports/2026-09-28-phase5-steps2-5.md#step-3-applied)).
+Apple-only sign-up is open and both app bundles are configured. Do not repeat
+completed hosted writes. Step 7 still requires the phone's build identity and
+successful real saves. The
+[September 30 readiness receipt](../outputs/reports/testflight-readiness-2026-09-30/README.md)
+distinguishes current read-only verification from the dated instructions below.
 Every step is a hosted read or write on `gametime-p11b`
 (`lyushhqoednheqwzsmxh`), and each one needs the approval named in it. Approval
 for one step doesn't cover the next. This runbook is a plan: it doesn't
@@ -727,10 +730,13 @@ This is D142's hosted acceptance for this build: a real hosted save for Steps
 and for outdoor distance after deployment.
 
 **Preconditions.**
-- The phone runs a build from `dff4be9` or later. Since September 26 16:35
-  UTC every upload from it has been refused, and the installed build can't
-  recover ([receipt](../outputs/reports/2026-09-27-health-refused-upload.md)).
-  Installing that build is its own device approval.
+- The phone runs a build from `dff4be9` or later. The September 27 refusal
+  receipt found no successful upload after September 26 16:35 UTC and an
+  installed build without recovery
+  ([receipt](../outputs/reports/2026-09-27-health-refused-upload.md)). Check the
+  current installation before deciding it needs an update. If needed, update
+  the same Staging bundle in place, preserving its account and journal, after
+  device approval. Do not install a second uploading bundle for this account.
 - Take `CUTOVER` as the UTC time of the last write in steps 1–4.
 - Timing: the Outdoor runs goal (Sep 24 – Oct 1) takes updates only until its
   corrections close on October 3 05:00 UTC. After that, a new outdoor-distance

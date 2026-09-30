@@ -474,7 +474,7 @@ import XCTest
         if finalized { XCTAssertTrue(before.contains("321")) }
         else {
             XCTAssertTrue(before.contains("12,000"))
-            assertMountedOwnRank(before, rank: 1)
+            try assertMountedOwnRank(window, controller: controller, rank: 1, name: name + "-before")
         }
         fixture.clock.value = 20; fixture.client.holding = true
         let old = Task { await fixture.store.loadDetail(fixture.id) }
@@ -488,11 +488,13 @@ import XCTest
         try await Task.sleep(for: .milliseconds(300))
         let corrected = try await capture(window, controller, name: name + "-accepted")
         assertMountedCorrection(corrected, finalized: finalized)
+        try assertMountedOwnRank(window, controller: controller, rank: 2, name: name + "-accepted")
         fixture.clock.value = 40
         oldResponse.finish(older); await old.value
         try await Task.sleep(for: .milliseconds(300))
         let late = try await capture(window, controller, name: name + "-after-late-response")
         assertMountedCorrection(late, finalized: finalized)
+        try assertMountedOwnRank(window, controller: controller, rank: 2, name: name + "-after-late-response")
         XCTAssertEqual(fixture.client.detailCalls, calls, "No extra fetch or remount can conceal the late response")
         XCTAssertEqual(fixture.store.challenges.first { $0.id == fixture.id }, latest)
         XCTAssertNotNil(controller.view.window)
@@ -502,19 +504,92 @@ import XCTest
                                          file: StaticString = #filePath, line: UInt = #line) {
         XCTAssertFalse(text.contains("12,000"), file: file, line: line)
         XCTAssertNotNil(text.range(of: #"\b100\s+steps\b"#, options: .regularExpression), file: file, line: line)
-        assertMountedOwnRank(text, rank: 2, file: file, line: line)
         XCTAssertTrue(text.contains("sharedfriend"), file: file, line: line)
         XCTAssertEqual(text.contains("result recorded"), finalized, "The participant outcome appears only after finality", file: file, line: line)
     }
 
-    private func assertMountedOwnRank(_ text: String, rank: Int,
-                                      file: StaticString = #filePath, line: UInt = #line) {
-        // The rank is vertically centered beside the two-line You / Agreed
-        // label. The saved image displays “1 You”; Vision orders those same
-        // baselines as “you 1 agreed”. Keep the exact numeric rank tied to You.
-        let pattern = #"\b(?:"# + String(rank) + #"\s+you|you\s+"# + String(rank) + #"\s+agreed)\b"#
-        XCTAssertNotNil(text.range(of: pattern, options: .regularExpression),
-                        "Expected your visible rank \(rank): \(text)", file: file, line: line)
+    private func assertMountedOwnRank(_ window: UIWindow, controller: UIViewController,
+                                      rank: Int, name: String,
+                                      file: StaticString = #filePath, line: UInt = #line) throws {
+        controller.view.layoutIfNeeded()
+        let format = UIGraphicsImageRendererFormat.default(); format.scale = 1; format.opaque = true
+        let image = UIGraphicsImageRenderer(size: window.bounds.size, format: format).image { _ in
+            controller.view.drawHierarchy(in: controller.view.bounds, afterScreenUpdates: true)
+        }
+        let cg = try XCTUnwrap(image.cgImage, file: file, line: line)
+        let names = VNRecognizeTextRequest(); names.recognitionLevel = .accurate
+        names.recognitionLanguages = ["en-US"]; names.minimumTextHeight = 0.005
+        names.usesLanguageCorrection = false
+        try VNImageRequestHandler(cgImage: cg).perform([names])
+        // Whole-viewport OCR can omit an isolated "1" or merge it with an
+        // unrelated title. Locate the actual You glyphs, then inspect only the
+        // rank beside that name; no other participant's number can satisfy it.
+        let ownNames = (names.results ?? []).compactMap { observation -> CGRect? in
+            guard let candidate = observation.topCandidates(1).first,
+                  candidate.string.range(of: #"^(?:\d+\s+)?you(?:\s+\d+)?(?:\s+agreed)?$"#,
+                                         options: [.regularExpression, .caseInsensitive]) != nil,
+                  let word = candidate.string.range(of: #"\byou\b"#, options: [.regularExpression, .caseInsensitive]),
+                  let bounds = try? candidate.boundingBox(for: word) else { return nil }
+            return bounds.boundingBox
+        }
+        XCTAssertEqual(ownNames.count, 1, "The rendered rank must be tied to one You label", file: file, line: line)
+        let ownName = try XCTUnwrap(ownNames.first, file: file, line: line)
+        let pixels = CGRect(x: 0, y: 0, width: CGFloat(cg.width), height: CGFloat(cg.height))
+        let nameRect = CGRect(x: ownName.minX * pixels.width, y: (1 - ownName.maxY) * pixels.height,
+                              width: ownName.width * pixels.width, height: ownName.height * pixels.height)
+        // The rank is centered beside the two-line You / Agreed stack. Bound
+        // the crop using the detected name, retaining You as reading context.
+        let rankRect = CGRect(x: nameRect.minX - nameRect.height * 2.2,
+                              y: nameRect.minY - nameRect.height * 0.5,
+                              width: nameRect.height * 2.05, height: nameRect.height * 3)
+            .intersection(pixels).integral
+        let contextRect = CGRect(x: rankRect.minX, y: rankRect.minY,
+                                 width: nameRect.maxX - rankRect.minX + nameRect.height * 0.2,
+                                 height: rankRect.height).intersection(pixels).integral
+        let context = try XCTUnwrap(cg.cropping(to: contextRect), file: file, line: line)
+        let contextAttachment = XCTAttachment(image: UIImage(cgImage: context))
+        contextAttachment.name = name + "-own-rank-context"; contextAttachment.lifetime = .keepAlways
+        add(contextAttachment)
+        let enlargedSize = CGSize(width: CGFloat(context.width) * 4, height: CGFloat(context.height) * 4)
+        let enlarged = UIGraphicsImageRenderer(size: enlargedSize, format: format).image { renderer in
+            renderer.cgContext.interpolationQuality = .high
+            UIImage(cgImage: context).draw(in: CGRect(origin: .zero, size: enlargedSize))
+        }
+        let cropAttachment = XCTAttachment(image: enlarged)
+        cropAttachment.name = name + "-own-rank-crop"; cropAttachment.lifetime = .keepAlways
+        add(cropAttachment)
+        let numbers = VNRecognizeTextRequest(); numbers.recognitionLevel = .accurate
+        numbers.recognitionLanguages = ["en-US"]; numbers.minimumTextHeight = 0.02
+        numbers.usesLanguageCorrection = false
+        let numberImage = try XCTUnwrap(enlarged.cgImage, file: file, line: line)
+        try VNImageRequestHandler(cgImage: numberImage).perform([numbers])
+        let candidates = (numbers.results ?? []).compactMap { $0.topCandidates(1).first }
+        let contextNames = candidates.compactMap { candidate -> CGRect? in
+            guard candidate.string.range(of: #"^(?:[1-9][0-9]*\s+)?you$"#,
+                                         options: [.regularExpression, .caseInsensitive]) != nil,
+                  let word = candidate.string.range(of: #"\byou\b"#, options: [.regularExpression, .caseInsensitive]),
+                  let bounds = try? candidate.boundingBox(for: word) else { return nil }
+            return bounds.boundingBox
+        }
+        XCTAssertEqual(contextNames.count, 1, "The cropped rank must remain beside one rendered You label", file: file, line: line)
+        let contextName = try XCTUnwrap(contextNames.first, file: file, line: line)
+        let rankCandidates = candidates.compactMap { candidate -> (text: String, bounds: CGRect)? in
+            guard candidate.string.range(of: #"^[1-9][0-9]*(?:\s+you)?$"#,
+                                         options: [.regularExpression, .caseInsensitive]) != nil,
+                  let number = candidate.string.range(of: #"^[1-9][0-9]*"#, options: .regularExpression),
+                  let bounds = try? candidate.boundingBox(for: number) else { return nil }
+            return (String(candidate.string[number]), bounds.boundingBox)
+        }
+        // Accept only an exact numeral immediately left of the detected You
+        // glyphs in this bounded row. Missing or wrong ranks still fail; no
+        // expected-digit hint, alternate candidate or letter conversion is used.
+        let recognized = rankCandidates.filter {
+            $0.bounds.maxX < contextName.minX && abs($0.bounds.midY - contextName.midY) <= contextName.height
+        }.map(\.text)
+        let transcript = XCTAttachment(string: "You bounds: \(nameRect); rank bounds: \(rankRect); context bounds: \(contextRect); accurate: \(candidates.map(\.string)); associated rank: \(recognized)")
+        transcript.name = name + "-own-rank-recognized"; transcript.lifetime = .keepAlways
+        add(transcript)
+        XCTAssertEqual(recognized, [String(rank)], "Expected exactly your visible rank \(rank) beside You", file: file, line: line)
     }
 
     private func mounted(detail: Bool, revision: Int) async throws {

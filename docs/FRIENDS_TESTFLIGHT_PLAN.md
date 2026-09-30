@@ -10,6 +10,15 @@ Apple provider changes, TestFlight submission, recruitment or money.
 challenge together, and see saved activity and results, with nobody
 operating the system by hand.
 
+**September 30 reconciliation.** The Apple provider, open sign-up, legal pages
+and account-deletion deployment are complete; do not repeat those changes.
+The Health recovery fix is in current source and the deployed function.
+Distribution signing, real-device acceptance and successful hosted activity
+saves remain separate gates. Use the
+[current readiness receipt](../outputs/reports/testflight-readiness-2026-09-30/README.md)
+for performed checks and limits. Preserve the owner's Staging installation
+and active goal; no TestFlight installation, upload or invitation is authorized.
+
 ## Build 1 scope
 
 | Area | Build 1 | Later |
@@ -332,20 +341,23 @@ functions score them from the start.
 - **Done September 28, evening:** deployed `delete-account` with its Apple
   secrets, turned off the private trial, granted the owner weekly support
   (renew by October 4) and read the report queue. Goals unchanged. Step 3
-  (Apple provider and sign-up) is blocked: no Management API token in the
-  session. See the [receipt](../outputs/reports/2026-09-28-phase5-steps2-5.md).
+  was then applied at 22:27 UTC: the provider includes both app bundles and
+  Apple-only sign-up is open. See the
+  [applied receipt](../outputs/reports/2026-09-28-phase5-steps2-5.md#step-3-applied).
 - **Remaining work** follows the approval-ready
   [runbook](FRIENDS_PHASE5_HOSTED_RUNBOOK.md). Each step lists its commands or
   SQL, preconditions, readback, rollback and approval. In order:
   1. ~~Deploy `delete-account`~~ done.
-  2. Add the production bundle to the Apple provider, set its secret, and
-     open Apple-only sign-up. **Needs Mason:** the dashboard change or a
-     token in the environment ([receipt](../outputs/reports/2026-09-28-phase5-steps2-5.md), "Step 3").
+  2. ~~Add the production bundle to the Apple provider, set its secret, and
+     open Apple-only sign-up~~ done September 28. Real sign-in and new-account
+     acceptance still need the signed candidate; provider settings alone do
+     not prove those flows.
   3. ~~Turn off the private trial~~ done.
   4. ~~Grant the owner weekly global support~~ done; renew weekly.
   5. Confirm that Steps and outdoor distance still save. This needs the
-     phone on a build from `dff4be9` or later; on September 28 its uploads
-     were still refused.
+     phone on a build from `dff4be9` or later. The September 27–29 receipts
+     still reported refusals; confirm the installed build and fresh saves
+     rather than treating that dated observation as current.
   6. The owner's backup decision. Recorded September 28: the Free plan lists
      no scheduled backups, so the step 6a dump is the only backup.
 
@@ -354,12 +366,23 @@ functions score them from the start.
 - **App Store Connect:** beta description, feedback email, privacy policy URL
   and terms.
 - **Review notes:** the Apple Watch requirement, simulated stakes only, a
-  reviewer account already friended with the owner, and a screen recording,
-  since a reviewer can't agree without Watch data.
+  screen recording, and the September 30 draft's review-access path: the
+  reviewer signs in with their own Apple ID and sends the owner a friend
+  request. The owner must be available to accept it and arrange review access;
+  confirm that coordination before submission. No pre-friended reviewer
+  account is prepared. A reviewer cannot create or agree without matching
+  Watch activity and a successful readiness check; the labeled fictional
+  recording supplies examples, not real Health acceptance.
 - **Testers:** email-invite fewer than 10.
 - **Owner's own install:** the owner switches to the TestFlight build only
   after the Staging goals settle, then deletes Staging. Two builds uploading
-  for one account can move a saved score backwards.
+  for one account can move a saved score backwards. Each installation has
+  its own Health permissions, comparison cache and upload journal. The server
+  accepts later replacement facts, including valid downward corrections;
+  it does not select the largest total. Updating the existing Staging bundle
+  in place after device approval is distinct from adding TestFlight as a
+  second uploader. Confirm final goal states before the eventual cutover;
+  the date below is an estimate, not acceptance.
 - **First cycle:** observe it through to the result. Include at least one
   Activity minutes goal and one timed-run goal.
 
@@ -374,17 +397,21 @@ October.
 
 ## Open owner inputs
 
-- Legal entity, jurisdiction and a monitored support inbox, for the privacy
-  policy, terms and feedback email. The
-  [legal pages runbook](LEGAL_PAGES_PUBLISH_RUNBOOK.md) covers the rest:
-  the text revisions, the GitHub Pages publish, and the configuration lines.
-- The Sign in with Apple key for `delete-account`: the `.p8` of a key with
-  Sign in with Apple enabled for `com.mjenkins.gametime` (team `87Z29RTC26`),
-  and its key ID, saved outside Git. It wasn't on the owner's Mac on
-  September 28 ([receipt](../outputs/reports/2026-09-28-friends-phase-5-hosted.md#step-2-blocked-on-the-apple-key)).
-- Who renews the Apple client secret, and when. The
-  [runbook](FRIENDS_PHASE5_HOSTED_RUNBOOK.md#21-preconditions) records the
-  dates once the secret is issued.
+- **Resolved:** Squirrel Labs, Inc.; State of Texas, United States; published
+  privacy and beta terms; configured `gametime-support@agentmail.to`.
+  The [legal pages runbook](LEGAL_PAGES_PUBLISH_RUNBOOK.md) records publication.
+  Inbox receipt/reply testing and staffing still need acceptance; sending a
+  test message requires authorization.
+- **Resolved:** the Apple key and both client secrets were supplied and used
+  September 28. Do not request them again. Assign the person who renews both
+  secrets **by March 13, 2027**; see the
+  [expiry receipt](../outputs/reports/2026-09-28-phase5-steps2-5.md#sign-in-with-apple-client-secret-expiry-and-renewal).
+- Apple account access for distribution signing and App Store Connect, the
+  export-compliance declaration, and explicit upload/recruitment approval.
+  Review contact phone and friend username were supplied September 30 and
+  are in the private local review draft. A labeled fictional simulator
+  challenge recording is prepared locally; owner review and permission to
+  submit it remain. The September 29 archive remains 0.9.0 (2).
 - Backups on the Free plan: a dump before each hosted write and a weekly dump
   during the test, or a move to Pro, which is a paid change.
 - A second support person. Only someone other than the suspender can decide a

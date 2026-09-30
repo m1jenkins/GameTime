@@ -9,6 +9,38 @@ Continue from local `main`. Commit and merge completed authorized work into
 `main`; push remains separately authorized. Dated receipts below identify their
 tested source and publication status, not the current branch tip.
 
+## September 30 TestFlight readiness reconciliation
+
+- **Already complete:** Apple-only sign-up is open, both bundles are
+  configured, legal pages are published, and account deletion is deployed.
+  Current public Auth/legal readbacks pass. Do not repeat those hosted writes.
+- **Health remains blocked:** the deployed recovery source matches the repo,
+  but all 34 ingest requests observed after the September 28 cutover through
+  September 30 20:56:13 UTC returned HTTP 422, with zero saved facts. The
+  physical iPhone was unavailable; its installed build is unverified. The
+  `dff4be9` client fix already exists in current source and the archive.
+- **Device preparation:** signed Staging 0.9.0 (930.26.1) built locally with
+  the existing development identity and unchanged app/configuration source
+  `f1dd690`. No installation occurred. Keep one uploading installation for
+  the owner; a same-bundle update after inspection and device approval
+  preserves the current account, journal and active goal.
+- **Local release work:** supplied review contact is filled in the ignored
+  private draft; a clearly labeled fictional simulator movie is prepared.
+  Two native test measurement errors were repaired; all 13 creation and
+  21 overlapping-response cases pass, along with 190 Core tests, 77 Health
+  tests, six current UI journeys, candidate/product guards and fresh builds.
+  The initial failures and limits remain in the receipt. Existing unrelated
+  copy/design work was preserved.
+- **Remaining gates:** real Steps/outdoor-distance saves and device/human
+  acceptance, Apple distribution access, export-compliance answer,
+  operational readiness, and separately approved upload/invitations. The
+  existing 0.9.0 (2) archive is valid and development-signed; current
+  authenticated App Store Connect state is unverified. Simulated-money
+  TestFlight configuration is unchanged. No push or hosted mutation.
+
+See the [current receipt](../outputs/reports/testflight-readiness-2026-09-30/README.md)
+for exact checks, preserved failures and the next owner action.
+
 ## September 29 TestFlight release prep, 0.9.0 (2)
 
 - **Version:** 0.9.0 (2) on every app configuration.
