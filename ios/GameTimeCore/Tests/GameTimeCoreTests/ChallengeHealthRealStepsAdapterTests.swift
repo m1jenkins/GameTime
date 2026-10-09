@@ -65,10 +65,15 @@ struct ChallengeHealthRealStepsAdapterTests {
         ], request: request()))
         #expect(tuple.activity?.integerValue == 6)
         #expect(tuple.readiness == .ready)
+        #expect(tuple.counted == [
+            ChallengeHealthCountedSpan(start: F.date(10), end: F.date(70), value: 3.9),
+            ChallengeHealthCountedSpan(start: F.date(100), end: F.date(160), value: 2.9)
+        ])
 
         let manual = adapter.evaluate(try F.snapshot([F.record(manual: true)], request: request()))
         #expect(manual.issues.contains(.sourceExplicitlyRejected))
         #expect(manual.activity == nil && manual.readiness == .noEligibleDataYet)
+        #expect(manual.counted.isEmpty)
 
         for marker in [Bool?.none, Bool?.some(false)] {
             let result = adapter.evaluate(try F.snapshot([
