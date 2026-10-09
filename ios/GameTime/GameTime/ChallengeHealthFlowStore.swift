@@ -52,6 +52,9 @@ final class ChallengeHealthFlowStore {
         /// Our last update can never be saved, and the challenge can't take
         /// another. No refresh or connection step can change this.
         var notSaved = false
+        /// What this phone's last complete reading counted, for Home's day-by-day
+        /// bars. nil until a reading counts something; never uploaded.
+        var counted: [ChallengeHealthCountedSpan]?
     }
     private struct Acknowledged { let binding: ChallengeHealthBinding; let at: Date }
     private final class Context {
@@ -344,7 +347,7 @@ final class ChallengeHealthFlowStore {
             // this challenge's own saved update goes first.
             if try dependencies.uploads.waitingChallenges(actor: actor).contains(id) {
                 show(row, actor: actor) {
-                    $0.localValue = nil; $0.readiness = .temporarilyUnavailable; $0.pendingDelivery = true
+                    $0.localValue = nil; $0.counted = nil; $0.readiness = .temporarilyUnavailable; $0.pendingDelivery = true
                     $0.lastServerUpdate = row.own(actor)?.fact?.recordedAt.date; $0.message = ChallengeHealthCopy.unconfirmed
                 }
                 return
@@ -375,7 +378,8 @@ final class ChallengeHealthFlowStore {
                 observedAt = snapshot.observedAt
                 replacement = evaluation.realReplacementDecision.normalizedReplacement
                 states[id] = State(readiness: evaluation.readiness, localValue: evaluation.activity?.integerValue,
-                    observedAt: snapshot.observedAt, lastServerUpdate: row.own(actor)?.fact?.recordedAt.date)
+                    observedAt: snapshot.observedAt, lastServerUpdate: row.own(actor)?.fact?.recordedAt.date,
+                    counted: evaluation.activity == nil ? nil : evaluation.counted)
             } catch is CancellationError { return }
             catch { states[id] = State(readiness: .temporarilyUnavailable, observedAt: observedAt) }
             try await check(actor, epoch)
@@ -413,6 +417,7 @@ final class ChallengeHealthFlowStore {
         catch {
             guard self.actor == actor, generation == epoch, operationVersions[id] == operation, !suspended else { return }
             states[id, default: State()].localValue = nil
+            states[id]?.counted = nil
             states[id]?.readiness = .temporarilyUnavailable
             states[id]?.message = ChallengeHealthCopy.unconfirmed
             // A newer saved revision or a closed window refused this update, and

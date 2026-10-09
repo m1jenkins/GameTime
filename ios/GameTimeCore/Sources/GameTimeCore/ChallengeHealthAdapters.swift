@@ -30,13 +30,16 @@ public struct ChallengeHealthEvaluation: Equatable, Sendable {
     public let permitsRealConsent: Bool
     public let permitsRealIngestion: Bool
     public let supportsConfirmedMiss: Bool
+    /// What the activity total counted, for showing it day by day on this
+    /// phone. Empty unless `activity` is set; never uploaded.
+    public let counted: [ChallengeHealthCountedSpan]
 
     init(readiness: ChallengeHealthReadiness, activity: ChallengeHealthValue?,
          evidence: ChallengeHealthEvidence, issues: Set<ChallengeHealthIssue>,
          diagnosticConcerns: Set<WeeklySourceConcern>, syntheticOnly: Bool,
          acceptsRealSourceObservation: Bool = false,
          permitsRealConsent: Bool = false, permitsRealIngestion: Bool = false,
-         supportsConfirmedMiss: Bool = false) {
+         supportsConfirmedMiss: Bool = false, counted: [ChallengeHealthCountedSpan] = []) {
         self.readiness = readiness; self.activity = activity; self.evidence = evidence
         self.issues = issues; self.diagnosticConcerns = diagnosticConcerns
         self.syntheticOnly = syntheticOnly
@@ -44,6 +47,7 @@ public struct ChallengeHealthEvaluation: Equatable, Sendable {
         self.permitsRealConsent = permitsRealConsent
         self.permitsRealIngestion = permitsRealIngestion
         self.supportsConfirmedMiss = supportsConfirmedMiss
+        self.counted = activity == nil ? [] : counted
     }
 }
 

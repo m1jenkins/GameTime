@@ -31,7 +31,8 @@ struct ChallengeHealthWatchQuantityAdapter: ChallengeHealthAdapter {
 
         func result(_ activity: ChallengeHealthValue? = nil,
                     acceptsReal: Bool = false,
-                    permitsIngestion: Bool = false) -> ChallengeHealthEvaluation {
+                    permitsIngestion: Bool = false,
+                    counted: [ChallengeHealthCountedSpan] = []) -> ChallengeHealthEvaluation {
             let readiness: ChallengeHealthReadiness
             let blockers = issues.subtracting([
                 .historyLimited, .deletionObserved, .sourceExplicitlyRejected
@@ -51,7 +52,8 @@ struct ChallengeHealthWatchQuantityAdapter: ChallengeHealthAdapter {
                     && snapshot.request.purpose == .readinessHistory
                     && Self.hasRequiredThirtyCalendarDayHistory(snapshot.request),
                 permitsRealIngestion: permitsIngestion,
-                supportsConfirmedMiss: false
+                supportsConfirmedMiss: false,
+                counted: counted
             )
         }
 
@@ -242,7 +244,8 @@ struct ChallengeHealthWatchQuantityAdapter: ChallengeHealthAdapter {
         // Challenge-window activity may be uploadable even though the separate
         // readiness-history check is not ready. This still cannot confirm a
         // miss or make any external transport run by itself.
-        return result(activity, acceptsReal: true, permitsIngestion: true)
+        return result(activity, acceptsReal: true, permitsIngestion: true,
+                      counted: ordered.map { ChallengeHealthCountedSpan(start: $0.start, end: $0.end, value: $0.value * scale) })
     }
 
     private static func isAppleHealthSystemSource(_ bundleIdentifier: String?) -> Bool {

@@ -197,6 +197,7 @@ struct LiveHomeView: View {
                     if let row = featured {
                         cheer(row)
                         HomeActionRows(challenges: store, viewGoal: viewGoal)
+                        if LiveHomeProgress.shows(row) { LiveHomeProgress(row: row, actor: store.actor, health: health) }
                     } else {
                         HomeActionRows(challenges: store, viewGoal: viewGoal)
                         if store.homeState == .content {
