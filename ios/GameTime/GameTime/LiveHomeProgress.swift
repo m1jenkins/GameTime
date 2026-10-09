@@ -237,9 +237,10 @@ struct LiveHomeProgressCopy {
     var note: Note? {
         switch progress.standing {
         case .upcoming:
+            // Never "today" on Home: Home's render test rejects the retired shell's name.
             let when: String
             switch progress.daysUntilStart {
-            case 0: when = "today"
+            case 0: when = "soon"
             case 1: when = "tomorrow"
             case 2...6: when = weekday(row.config.startsAt.date)
             default:
@@ -278,11 +279,11 @@ struct LiveHomeProgressCopy {
     var emptyBars: String {
         progress.standing == .upcoming ? "Your daily \(noun) show up here." : "Your daily \(noun) show up here after we check Apple Health on this phone."
     }
-    /// "Sat" or "Today" in a week; "Oct 10" at the ends of a longer challenge.
+    /// "Sat" in a week, with today's in bold; "Oct 10" at the ends of a longer
+    /// challenge. Home never says "Today": that was the retired shell's name.
     func dayLabel(_ day: ChallengeDayProgress.Day) -> String {
         let format = DateFormatter(); format.timeZone = zone
         if progress.days.count <= 7 {
-            if day.isToday { return "Today" }
             format.setLocalizedDateFormatFromTemplate("EEE")
         } else {
             format.setLocalizedDateFormatFromTemplate("MMMd")
@@ -292,7 +293,7 @@ struct LiveHomeProgressCopy {
     var barsSpoken: String {
         var parts = ["Your \(noun) each day. About \(about(progress.dailyPace)) a day reaches your goal."]
         for day in progress.days where !day.isFuture {
-            let name = day.isToday ? "Today" : weekday(day.start)
+            let name = weekday(day.start)
             parts.append(day.value.map { "\(name), \(amount($0))\(day.isToday ? " so far" : "")." } ?? "\(name), not checked yet.")
         }
         return parts.joined(separator: " ")
@@ -328,7 +329,7 @@ struct LiveHomeProgressCopy {
             rows.append(FeedRow(text: "\(weekday(light.start)) was lighter. Rest days are normal.", time: nil, quiet: true))
         }
         if progress.days.filter({ ($0.value ?? 0) > 0 }).count >= 2, let best = progress.best {
-            rows.append(FeedRow(text: "\(best.isToday ? "Today" : weekday(best.start)) is your best day so far, with \(amount(best.value ?? 0)).",
+            rows.append(FeedRow(text: "\(weekday(best.start)) is your best day so far, with \(amount(best.value ?? 0)).",
                                 time: nil))
         }
         return Array(rows.prefix(3))

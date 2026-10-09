@@ -31,7 +31,9 @@ final class LiveHomeProgressTests: XCTestCase {
         XCTAssertTrue(feed.contains("You passed 50,000 steps. Halfway there."), "\(feed)")
         XCTAssertTrue(feed.contains("Monday was lighter. Rest days are normal."), "\(feed)")
         XCTAssertLessThanOrEqual(feed.count, 3)
-        XCTAssertEqual(copy.dayLabel(copy.progress.days[3]), "Today")
+        XCTAssertEqual(copy.dayLabel(copy.progress.days[3]), "Tue")
+        // The retired shell was called Today, and Home's render test rejects it.
+        XCTAssertFalse(copy.barsSpoken.contains("Today"))
     }
 
     func testShortOfPaceNeverSaysBehindOrMentionsMoney() async throws {
