@@ -10,7 +10,7 @@ final class LiveHomeProgressTests: XCTestCase {
     private let start = try! ChallengeInstant("2026-10-10T00:00:00-05:00").date
 
     func testBeforeTheStartSaysWhenAndTheEvenDailyShare() async throws {
-        let copy = try await copy(now: start.addingTimeInterval(-14 * 3_600), total: nil)
+        let copy = try await makeCopy(now: start.addingTimeInterval(-14 * 3_600), total: nil)
         XCTAssertEqual(copy.progress.standing, .upcoming)
         XCTAssertEqual(copy.note?.title, "Your challenge starts tomorrow.")
         XCTAssertEqual(copy.note?.detail, "About 14,300 steps a day reaches 100,000 steps.")
@@ -22,7 +22,7 @@ final class LiveHomeProgressTests: XCTestCase {
 
     func testAheadOfPaceShowsWhatsLeftAndAnEvenShare() async throws {
         let counted = [span(day: 0, 16_420), span(day: 1, 18_900), span(day: 2, 7_130), span(day: 3, 11_250)]
-        let copy = try await copy(now: at(day: 3, hour: 14), total: 53_700, counted: counted)
+        let copy = try await makeCopy(now: at(day: 3, hour: 14), total: 53_700, counted: counted)
         XCTAssertEqual(copy.note?.title, "You're ahead of pace with 4 days left.")
         XCTAssertEqual(copy.note?.detail, "46,300 steps to go. About 11,600 steps a day gets you there.")
         XCTAssertEqual(copy.stats.map(\.label), ["Best day (Sun)", "Daily average", "Days left"])
@@ -35,13 +35,17 @@ final class LiveHomeProgressTests: XCTestCase {
     }
 
     func testShortOfPaceNeverSaysBehindOrMentionsMoney() async throws {
-        let copy = try await copy(now: at(day: 3, hour: 12), total: 40_000)
+        let copy = try await makeCopy(now: at(day: 3, hour: 12), total: 40_000)
         XCTAssertEqual(copy.note?.title, "60,000 steps to go with 4 days left.")
         XCTAssertEqual(copy.note?.detail, "About 15,000 steps a day gets you there.")
-        let last = try await copy(now: at(day: 6, hour: 18), total: 92_000)
+        let last = try await makeCopy(now: at(day: 6, hour: 18), total: 92_000)
         XCTAssertEqual(last.note?.title, "Last day: 8,000 steps to go.")
         XCTAssertNil(last.note?.detail)
-        for text in [copy, last].flatMap({ [$0.note?.title, $0.note?.detail] + $0.feed.map(\.text) }).compactMap({ $0 }) {
+        var texts: [String] = []
+        for item in [copy, last] {
+            texts += [item.note?.title, item.note?.detail].compactMap { $0 } + item.feed.map(\.text)
+        }
+        for text in texts {
             XCTAssertFalse(text.localizedCaseInsensitiveContains("behind"), text)
             XCTAssertFalse(text.contains("$"), text)
             XCTAssertFalse(text.localizedCaseInsensitiveContains("streak"), text)
@@ -49,20 +53,20 @@ final class LiveHomeProgressTests: XCTestCase {
     }
 
     func testALightDayIsNormalAndReachingTheGoalSaysSo() async throws {
-        let light = try await copy(now: at(day: 3, hour: 12), total: 30_000,
+        let light = try await makeCopy(now: at(day: 3, hour: 12), total: 30_000,
                                    counted: [span(day: 0, 15_000), span(day: 1, 13_000), span(day: 2, 2_000)])
         XCTAssertTrue(light.feed.map(\.text).contains("Monday was lighter. Rest days are normal."))
-        let reached = try await copy(now: at(day: 5, hour: 12), total: 101_000)
+        let reached = try await makeCopy(now: at(day: 5, hour: 12), total: 101_000)
         XCTAssertEqual(reached.note?.title, "You reached your goal.")
     }
 
     func testNoSavedTotalExplainsWhatCountsInsteadOfAMiss() async throws {
-        let copy = try await copy(now: at(day: 2, hour: 12), total: nil)
+        let copy = try await makeCopy(now: at(day: 2, hour: 12), total: nil)
         XCTAssertEqual(copy.progress.standing, .noUpdate)
         XCTAssertEqual(copy.note?.title, "We haven't counted any steps yet.")
         XCTAssertTrue(copy.progress.days.allSatisfy { $0.value == nil })
         XCTAssertTrue(copy.feed.isEmpty)
-        let saving = try await copy(now: at(day: 2, hour: 12), total: nil, counted: [span(day: 0, 9_000)])
+        let saving = try await makeCopy(now: at(day: 2, hour: 12), total: nil, counted: [span(day: 0, 9_000)])
         XCTAssertEqual(saving.note?.title, "We're saving your latest steps.")
     }
 
@@ -72,7 +76,7 @@ final class LiveHomeProgressTests: XCTestCase {
     private func span(day: Double, _ value: Double) -> ChallengeHealthCountedSpan {
         ChallengeHealthCountedSpan(start: at(day: day, hour: 9), end: at(day: day, hour: 9.5), value: value)
     }
-    private func copy(now: Date, total: Int?, counted: [ChallengeHealthCountedSpan]? = nil) async throws -> LiveHomeProgressCopy {
+    private func makeCopy(now: Date, total: Int?, counted: [ChallengeHealthCountedSpan]? = nil) async throws -> LiveHomeProgressCopy {
         let row = try await row(now: now, total: total)
         let progress = try XCTUnwrap(LiveHomeProgress.progress(row, actor: actor, counted: counted))
         return LiveHomeProgressCopy(row: row, actor: actor, progress: progress)
