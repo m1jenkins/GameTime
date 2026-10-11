@@ -156,7 +156,8 @@ select lives_ok(format($$select pg_temp.call(3, %L)$$,
 select ok(app.is_blocked_either_way(pg_temp.ba(2), pg_temp.ba(3)), 'and the block row exists');
 select lives_ok(format($$select pg_temp.call(5, %L)$$,
   format($$select public.challenge_personal_preview_v1('personal_steps_goal_v1', %L::jsonb, 50000, 'apple_watch_steps_v1')$$,
-  jsonb_build_object('start_date', '2026-10-03', 'days', 7, 'timezone', 'America/Chicago', 'amount_cents', 100))),
+  jsonb_build_object('start_date', to_char((clock_timestamp() at time zone 'America/Chicago')::date + 5, 'YYYY-MM-DD'),
+    'days', 7, 'timezone', 'America/Chicago', 'amount_cents', 100))),
   'a personal goal preview still works');
 
 -- ---------------------------------------------------------------------------
