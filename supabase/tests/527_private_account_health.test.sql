@@ -118,15 +118,18 @@ select a.challenge_id,1,p.actor,a.digest,clock_timestamp()
 from app.challenge_agreements_v1 a cross join private_ids p
 where a.challenge_id=(select id from private_challenge);
 
+-- One past instant for both fields. Separate clock_timestamp() calls can
+-- disagree by a microsecond, and a later query bound is refused.
 create temp table private_payload as
 select jsonb_build_object(
  'contract_version',1,'actor_id',p.actor,'challenge_id',c.id,'agreement_version',1,
  'terms_digest',a.digest,'source_policy_version','apple_watch_steps_v1','metric','steps',
  'window_starts_at',c.starts_at,'window_ends_at',c.ends_at,'request_id',p.progress_request,
  'revision',1,'previous_revision',null,'state','value','value',100,
- 'observed_at',clock_timestamp(),'queried_through_at',clock_timestamp()) body
+ 'observed_at',clock.instant,'queried_through_at',clock.instant) body
 from private_challenge c cross join private_ids p
-join app.challenge_agreements_v1 a on a.challenge_id=c.id and a.version=1;
+join app.challenge_agreements_v1 a on a.challenge_id=c.id and a.version=1
+cross join lateral (select clock_timestamp()-interval '1 second' instant) clock;
 create temp table private_progress_receipt as
 select public.challenge_real_health_ingest_v1(
  (select progress_request from private_ids),(select body from private_payload),
@@ -192,9 +195,10 @@ select jsonb_build_object(
  'terms_digest',a.digest,'source_policy_version','apple_workout_outdoor_distance_v1','metric','distance',
  'window_starts_at',c.starts_at,'window_ends_at',c.ends_at,'request_id',c.progress_request,
  'revision',1,'previous_revision',null,'state','value','value',5000000,
- 'observed_at',clock_timestamp(),'queried_through_at',clock_timestamp()) body
+ 'observed_at',clock.instant,'queried_through_at',clock.instant) body
 from private_distance c cross join private_ids p
-join app.challenge_agreements_v1 a on a.challenge_id=c.id and a.version=1;
+join app.challenge_agreements_v1 a on a.challenge_id=c.id and a.version=1
+cross join lateral (select clock_timestamp()-interval '1 second' instant) clock;
 select lives_ok(
  $$select public.challenge_real_health_ingest_v1(
    (select progress_request from private_distance),(select body from private_distance_payload),
